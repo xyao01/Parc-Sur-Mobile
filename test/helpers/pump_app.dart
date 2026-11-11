@@ -7,8 +7,11 @@ import 'package:parc_sur_mobile/core/clock.dart';
 import 'package:parc_sur_mobile/features/auth/application/session.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
+import 'package:parc_sur_mobile/features/missions/data/missions_gateway.dart';
+import 'package:parc_sur_mobile/features/missions/data/missions_providers.dart';
 
 import 'fake_auth_gateway.dart';
+import 'fake_missions_gateway.dart';
 
 /// Date of the prototype screens (Tuesday 3 November 2026, 06:00).
 final prototypeNow = DateTime(2026, 11, 3, 6);
@@ -17,6 +20,7 @@ final prototypeNow = DateTime(2026, 11, 3, 6);
 const prototypeProfile = MobileProfile(
   firstName: 'Yao',
   lastName: 'Kouadio',
+  email: 'yao.kouadio@ministere.ci',
   roles: {AppRole.chauffeur, AppRole.demandeur},
 );
 
@@ -25,7 +29,9 @@ Future<void> pumpApp(
   WidgetTester tester, {
   required String location,
   bool signedIn = true,
+  MobileProfile profile = prototypeProfile,
   AuthGateway? gateway,
+  MissionsGateway? missions,
   List overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(390, 844);
@@ -37,7 +43,10 @@ Future<void> pumpApp(
       overrides: [
         clockProvider.overrideWithValue(() => prototypeNow),
         authGatewayProvider.overrideWithValue(gateway ?? FakeAuthGateway()),
-        initialProfileProvider.overrideWithValue(signedIn ? prototypeProfile : null),
+        missionsGatewayProvider.overrideWithValue(
+          missions ?? FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow)),
+        ),
+        initialProfileProvider.overrideWithValue(signedIn ? profile : null),
         ...overrides,
       ],
       child: ParcSurApp(initialLocation: location),

@@ -1,43 +1,69 @@
-/// A driver mission (approved request with an assigned vehicle).
+/// A driver mission, as returned by `mes_missions_chauffeur()`
+/// (validated request with an assigned vehicle, not yet closed).
 class Mission {
   const Mission({
     required this.id,
-    required this.origin,
+    required this.number,
     required this.destination,
     required this.vehicle,
     required this.departure,
     required this.plannedReturn,
     required this.requester,
     required this.passengers,
+    this.purpose,
+    this.departureCheckDone = false,
+    this.returnCheckDone = false,
   });
 
-  final String id;
-  final String origin;
-  final String destination;
+  factory Mission.fromJson(Map<String, dynamic> json) {
+    final v = Map<String, dynamic>.from(json['vehicule'] as Map);
+    return Mission(
+      id: json['id'] as String,
+      number: (json['numero'] as String?) ?? '',
+      destination: (json['destination'] as String?) ?? '',
+      purpose: json['motif'] as String?,
+      vehicle: Vehicle(
+        id: v['id'] as String,
+        name: ((v['nom'] as String?) ?? '').trim(),
+        plate: (v['immatriculation'] as String?) ?? '',
+        odometerKm: (v['kilometrage'] as num?)?.toInt(),
+      ),
+      departure: DateTime.parse(json['depart'] as String).toLocal(),
+      plannedReturn: DateTime.parse(json['retour'] as String).toLocal(),
+      requester: (json['demandeur'] as String?) ?? '',
+      passengers: (json['passagers'] as num?)?.toInt() ?? 0,
+      departureCheckDone: json['controleDepart'] != null,
+      returnCheckDone: json['controleRetour'] != null,
+    );
+  }
 
-  /// Assigned vehicle, `null` while the fleet manager has not confirmed it.
-  final Vehicle? vehicle;
+  final String id;
+
+  /// Request number, e.g. `D-0139`.
+  final String number;
+  final String destination;
+  final String? purpose;
+  final Vehicle vehicle;
   final DateTime departure;
   final DateTime plannedReturn;
   final String requester;
   final int passengers;
+  final bool departureCheckDone;
+  final bool returnCheckDone;
 }
 
 class Vehicle {
-  const Vehicle({required this.model, required this.plate, this.lastOdometer});
+  const Vehicle({required this.id, required this.name, required this.plate, this.odometerKm});
 
-  final String model;
+  final String id;
+
+  /// Brand + model, e.g. `Toyota Land Cruiser`.
+  final String name;
   final String plate;
-  final OdometerReading? lastOdometer;
+
+  /// Current odometer of the vehicle (last accepted reading).
+  final int? odometerKm;
 
   /// `Land Cruiser · 1150 FB 01`
-  String get label => '$model · $plate';
+  String get label => '$name · $plate';
 }
-
-class OdometerReading {
-  const OdometerReading({required this.km, required this.date});
-
-  final int km;
-  final DateTime date;
-}
-

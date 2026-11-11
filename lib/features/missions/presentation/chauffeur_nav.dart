@@ -1,21 +1,25 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/widgets/parc_bottom_nav.dart';
 import '../../../core/widgets/parc_icon.dart';
 
-/// Chauffeur tab bar. Only « Missions » has a designed screen so far.
+/// Chauffeur tab bar. Planning and Alertes are not designed yet.
 class ChauffeurBottomNav extends StatelessWidget {
-  const ChauffeurBottomNav({super.key});
+  const ChauffeurBottomNav({super.key, required this.currentIndex});
+
+  final int currentIndex;
 
   @override
   Widget build(BuildContext context) {
-    return const ParcBottomNav(
-      currentIndex: 0,
+    return ParcBottomNav(
+      currentIndex: currentIndex,
       items: [
-        ParcNavItem(label: 'Missions', icon: ParcIcons.car),
-        ParcNavItem(label: 'Planning', icon: ParcIcons.calendar),
-        ParcNavItem(label: 'Alertes', icon: ParcIcons.bell),
-        ParcNavItem(label: 'Profil', icon: ParcIcons.user),
+        ParcNavItem(label: 'Missions', icon: ParcIcons.car, onTap: () => context.go(Routes.missions)),
+        const ParcNavItem(label: 'Planning', icon: ParcIcons.calendar),
+        const ParcNavItem(label: 'Alertes', icon: ParcIcons.bell),
+        ParcNavItem(label: 'Profil', icon: ParcIcons.user, onTap: () => context.go(Routes.profile)),
       ],
     );
   }

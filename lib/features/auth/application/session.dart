@@ -27,8 +27,15 @@ class SessionNotifier extends Notifier<MobileProfile?> {
     return profile;
   }
 
+  /// First sign-in password. Throws a `LoginFailure` when refused.
+  Future<void> setPassword(String password, String confirmation) async {
+    await ref.read(authServiceProvider).setPassword(password, confirmation);
+    state = state?.copyWith(mustChangePassword: false);
+  }
+
   Future<void> signOut() async {
-    await ref.read(authServiceProvider).signOut();
+    final profile = state;
     state = null;
+    await ref.read(authServiceProvider).signOut(profile);
   }
 }

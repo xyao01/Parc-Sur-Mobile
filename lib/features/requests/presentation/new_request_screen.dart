@@ -196,7 +196,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const DemandeurBottomNav(),
+      bottomNavigationBar: const DemandeurBottomNav(currentIndex: 1),
     );
   }
 }

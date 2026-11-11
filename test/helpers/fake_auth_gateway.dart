@@ -6,12 +6,16 @@ class FakeAuthGateway implements AuthGateway {
     this.lockedUntilValue,
     this.signInError,
     this.lockAfterFailure,
+    this.provisionalPassword = false,
+    this.updatePasswordError,
     this.profile = const {'prenom': 'Yao', 'nom': 'Kouadio', 'demandeur': false, 'chauffeur': true},
   });
 
   DateTime? lockedUntilValue;
   AuthGatewayError? signInError;
   DateTime? lockAfterFailure;
+  bool provisionalPassword;
+  AuthGatewayError? updatePasswordError;
   Map<String, dynamic> profile;
 
   final calls = <String>[];
@@ -23,9 +27,10 @@ class FakeAuthGateway implements AuthGateway {
   }
 
   @override
-  Future<void> signInWithPassword(String email, String password) async {
+  Future<SignInResult> signInWithPassword(String email, String password) async {
     calls.add('signIn:$email');
     if (signInError != null) throw AuthGatewayException(signInError!);
+    return SignInResult(email: email, provisionalPassword: provisionalPassword);
   }
 
   @override
@@ -42,6 +47,15 @@ class FakeAuthGateway implements AuthGateway {
     calls.add('mobileProfile');
     return profile;
   }
+
+  @override
+  Future<void> updatePassword(String password) async {
+    calls.add('updatePassword:$password');
+    if (updatePasswordError != null) throw AuthGatewayException(updatePasswordError!);
+  }
+
+  @override
+  Future<void> logSession(String action) async => calls.add('logSession:$action');
 
   @override
   Future<void> signOut() async => calls.add('signOut');

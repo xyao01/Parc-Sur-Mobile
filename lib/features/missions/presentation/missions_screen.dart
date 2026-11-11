@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/clock.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
 import '../../../core/widgets/parc_buttons.dart';
+import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parcsur_logo.dart';
 import '../../auth/application/session.dart';
@@ -19,51 +21,80 @@ import 'chauffeur_nav.dart';
 class MissionsScreen extends ConsumerWidget {
   const MissionsScreen({super.key});
 
+  /// « Mission du jour »: leaves today, or already under way (left, not yet back).
+  static bool isToday(Mission m, DateTime now) =>
+      FrenchDates.sameDay(m.departure, now) || (!m.departure.isAfter(now) && m.plannedReturn.isAfter(now));
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = ref.watch(clockProvider)();
-    final driver = ref.watch(sessionProvider)!;
-    final missions = ref.watch(missionsProvider);
-    final todays = missions.where((m) => FrenchDates.sameDay(m.departure, now)).toList();
-    final upcoming = missions.where((m) => m.departure.isAfter(now) && !FrenchDates.sameDay(m.departure, now)).toList();
+    final driver = ref.watch(sessionProvider);
+    final async = ref.watch(missionsProvider);
+    final missions = async.value ?? const <Mission>[];
+    final todays = missions.where((m) => isToday(m, now)).toList();
+    final upcoming = missions.where((m) => m.departure.isAfter(now) && !isToday(m, now)).toList();
     final count = todays.length;
-    final subtitle = '${FrenchDates.longDay(now)} · $count mission${count > 1 ? 's' : ''} aujourd\'hui';
+    final subtitle = async.hasValue
+        ? '${FrenchDates.longDay(now)} · $count mission${count > 1 ? 's' : ''} aujourd\'hui'
+        : FrenchDates.longDay(now);
+
+    final List<Widget> content;
+    if (async.isLoading && !async.hasValue) {
+      content = const [
+        SizedBox(height: 40),
+        Center(child: CircularProgressIndicator(color: ParcColors.primary)),
+      ];
+    } else if (async.hasError && !async.hasValue) {
+      content = [
+        const ParcErrorAlert(message: 'Impossible de charger vos missions.'),
+        const SizedBox(height: 12),
+        ParcOutlinedButton(label: 'Réessayer', height: 46, onPressed: () => ref.invalidate(missionsProvider)),
+      ];
+    } else {
+      content = [
+        const _SectionTitle('Mission du jour', header: true),
+        const SizedBox(height: 14),
+        if (todays.isEmpty) ...[
+          Text("Aucune mission aujourd'hui.", style: parcText(14, color: ParcColors.textMuted)),
+          const SizedBox(height: 14),
+        ],
+        for (final m in todays) ...[_TodayMissionCard(mission: m), const SizedBox(height: 14)],
+        if (upcoming.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          const _SectionTitle('À venir'),
+          const SizedBox(height: 14),
+          for (final m in upcoming) ...[_UpcomingMissionTile(mission: m), const SizedBox(height: 14)],
+        ],
+        const SizedBox(height: 4),
+        const Row(
+          children: [
+            Expanded(child: _QuickAction(label: 'Saisir un plein', icon: ParcIcons.fuel, iconColor: ParcColors.primary)),
+            SizedBox(width: 10),
+            Expanded(child: _QuickAction(label: 'Signaler un incident', icon: ParcIcons.warning, iconColor: ParcColors.danger)),
+          ],
+        ),
+      ];
+    }
 
     return Scaffold(
       backgroundColor: ParcColors.background,
       body: Column(
         children: [
-          _Header(driver: driver, subtitle: subtitle),
+          if (driver != null) _Header(driver: driver, subtitle: subtitle),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _SectionTitle('Mission du jour', header: true),
-                const SizedBox(height: 14),
-                for (final m in todays) ...[_TodayMissionCard(mission: m), const SizedBox(height: 14)],
-                if (upcoming.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  const _SectionTitle('À venir'),
-                  const SizedBox(height: 14),
-                  for (final m in upcoming) ...[_UpcomingMissionTile(mission: m), const SizedBox(height: 14)],
-                ],
-                const SizedBox(height: 4),
-                const Row(
-                  children: [
-                    Expanded(child: _QuickAction(label: 'Saisir un plein', icon: ParcIcons.fuel, iconColor: ParcColors.primary)),
-                    SizedBox(width: 10),
-                    Expanded(child: _QuickAction(label: 'Signaler un incident', icon: ParcIcons.warning, iconColor: ParcColors.danger)),
-                  ],
-                ),
-              ],
+            child: RefreshIndicator(
+              color: ParcColors.primary,
+              onRefresh: () => ref.refresh(missionsProvider.future),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: content),
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: const ChauffeurBottomNav(),
+      bottomNavigationBar: const ChauffeurBottomNav(currentIndex: 0),
     );
   }
 }
@@ -152,37 +183,29 @@ class _TodayMissionCard extends StatelessWidget {
                 decoration: BoxDecoration(color: ParcColors.primarySoft, borderRadius: BorderRadius.circular(999)),
                 child: Text('Départ à ${FrenchDates.time(m.departure)}', style: parcText(12, weight: 800, color: ParcColors.primary)),
               ),
-              Text(m.id, style: parcText(12, weight: 600, color: ParcColors.textMuted)),
+              Text(m.number, style: parcText(12, weight: 600, color: ParcColors.textMuted)),
             ],
           ),
           const SizedBox(height: 12),
-          Semantics(
-            label: '${m.origin} vers ${m.destination}',
-            excludeSemantics: false,
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 10,
-              children: [
-                Text(m.origin, style: parcText(18, weight: 800)),
-                const ParcIcon(ParcIcons.arrowRight, size: 18, color: ParcColors.accent),
-                Text(m.destination, style: parcText(18, weight: 800)),
-              ],
-            ),
-          ),
+          // No origin in the database: destination only (see README).
+          Text(m.destination, style: parcText(18, weight: 800)),
           const SizedBox(height: 12),
           _DetailsGrid(entries: [
-            ('Véhicule', m.vehicle?.label ?? 'À confirmer'),
+            ('Véhicule', m.vehicle.label),
             ('Retour prévu', FrenchDates.shortDayTime(m.plannedReturn)),
             ('Demandeur', m.requester),
             ('Passagers', '${m.passengers}'),
           ]),
-          const SizedBox(height: 12),
-          ParcPrimaryButton(
-            label: 'Commencer le contrôle de départ',
-            height: 52,
-            onPressed: () => context.push('/missions/${m.id}/controle-depart'),
-            trailing: const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.surface),
-          ),
+          // Return check is not designed yet: no action once the departure is recorded.
+          if (!m.departureCheckDone) ...[
+            const SizedBox(height: 12),
+            ParcPrimaryButton(
+              label: 'Commencer le contrôle de départ',
+              height: 52,
+              onPressed: () => context.push(Routes.departureCheck(m.id)),
+              trailing: const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.surface),
+            ),
+          ],
         ],
       ),
     );
@@ -228,7 +251,7 @@ class _UpcomingMissionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = mission;
-    final vehicle = m.vehicle?.model ?? 'Véhicule à confirmer';
+    final vehicle = m.vehicle.name;
     final detail =
         '$vehicle · ${FrenchDates.time(m.departure)} → ${FrenchDates.weekdayShort(m.plannedReturn)} ${FrenchDates.time(m.plannedReturn)}';
     return Container(

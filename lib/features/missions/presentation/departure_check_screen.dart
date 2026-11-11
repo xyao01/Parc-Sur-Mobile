@@ -3,18 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/routes.dart';
+import '../../../core/clock.dart';
 import '../../../core/connectivity.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
+import '../../../core/uuid.dart';
 import '../../../core/widgets/dashed_border.dart';
 import '../../../core/widgets/parc_buttons.dart';
+import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
+import '../data/missions_gateway.dart';
 import '../data/missions_providers.dart';
 import '../domain/departure_check_config.dart';
-import '../domain/mission.dart';
 
-/// Mobile · Contrôle de départ (chauffeur).
+/// Mobile · Contrôle de départ (chauffeur) — recorded with `enregistrer_controle`.
 class DepartureCheckScreen extends ConsumerStatefulWidget {
   const DepartureCheckScreen({super.key, required this.missionId});
 
@@ -27,8 +31,13 @@ class DepartureCheckScreen extends ConsumerStatefulWidget {
 class _DepartureCheckScreenState extends ConsumerState<DepartureCheckScreen> {
   final _odometer = TextEditingController();
   String _fuel = DepartureCheckConfig.defaultFuelLevel;
-  final Set<int> _checked = {};
+  final Set<String> _checked = {};
   final List<String> _photos = [];
+
+  /// Client id of this submission: a retry after a network error is not recorded twice.
+  final String _submissionId = uuidV4();
+  bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -38,11 +47,49 @@ class _DepartureCheckScreenState extends ConsumerState<DepartureCheckScreen> {
 
   int? get _km => int.tryParse(_odometer.text.replaceAll(RegExp(r'\s'), ''));
 
-  void _back() => context.canPop() ? context.pop() : context.go('/missions');
+  void _back() => context.canPop() ? context.pop() : context.go(Routes.missions);
+
+  Future<void> _submit() async {
+    if (_busy) return;
+    FocusScope.of(context).unfocus();
+    final km = _km;
+    if (km == null) {
+      setState(() => _error = 'Indiquez le kilométrage au compteur.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(missionsGatewayProvider).recordControl(
+            id: _submissionId,
+            missionId: widget.missionId,
+            type: 'depart',
+            odometerKm: km,
+            fuel: DepartureCheckConfig.fuelLevels[_fuel]!,
+            points: {
+              for (final e in DepartureCheckConfig.checklist.entries)
+                e.value: _checked.contains(e.key)
+                    ? DepartureCheckConfig.checkedValue
+                    : DepartureCheckConfig.uncheckedValue,
+            },
+            enteredAt: ref.read(clockProvider)(),
+          );
+      ref.invalidate(missionsProvider);
+      if (mounted) _back();
+    } on MissionsGatewayException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Le contrôle n’a pas pu être enregistré. Réessayez.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final mission = ref.watch(missionByIdProvider(widget.missionId));
+    final mission = ref.watch(missionByIdProvider(widget.missionId)).value;
     final offline = ref.watch(isOfflineProvider);
     final vehicle = mission?.vehicle;
 
@@ -50,58 +97,58 @@ class _DepartureCheckScreenState extends ConsumerState<DepartureCheckScreen> {
       backgroundColor: ParcColors.background,
       body: Column(
         children: [
-          _Header(subtitle: vehicle?.label ?? 'Véhicule à confirmer', onBack: _back),
+          _Header(subtitle: vehicle?.label ?? '', onBack: _back),
           if (offline) const _OfflineBanner(),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _OdometerField(controller: _odometer, last: vehicle?.lastOdometer, km: _km, onChanged: () => setState(() {})),
-                const SizedBox(height: 16),
-                const _Legend('Niveau de carburant'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    for (final (i, level) in DepartureCheckConfig.fuelLevels.indexed) ...[
-                      if (i > 0) const SizedBox(width: 6),
-                      Expanded(
-                        child: _FuelOption(
-                          label: level,
-                          selected: _fuel == level,
-                          onTap: () => setState(() => _fuel = level),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _OdometerField(controller: _odometer, last: vehicle?.odometerKm, km: _km, onChanged: () => setState(() {})),
+                  const SizedBox(height: 16),
+                  const _Legend('Niveau de carburant'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (final (i, level) in DepartureCheckConfig.fuelLevels.keys.indexed) ...[
+                        if (i > 0) const SizedBox(width: 6),
+                        Expanded(
+                          child: _FuelOption(
+                            label: level,
+                            selected: _fuel == level,
+                            onTap: () => setState(() => _fuel = level),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  const _Legend('État du véhicule'),
+                  const SizedBox(height: 8),
+                  for (final (i, label) in DepartureCheckConfig.checklist.keys.indexed) ...[
+                    if (i > 0) const SizedBox(height: 6),
+                    _CheckItem(
+                      label: label,
+                      checked: _checked.contains(label),
+                      onTap: () => setState(() => _checked.contains(label) ? _checked.remove(label) : _checked.add(label)),
+                    ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                const _Legend('État du véhicule'),
-                const SizedBox(height: 8),
-                for (final (i, label) in DepartureCheckConfig.checklist.indexed) ...[
-                  if (i > 0) const SizedBox(height: 6),
-                  _CheckItem(
-                    label: label,
-                    checked: _checked.contains(i),
-                    onTap: () => setState(() => _checked.contains(i) ? _checked.remove(i) : _checked.add(i)),
+                  const SizedBox(height: 16),
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Photos ', style: parcText(14, weight: 800)),
+                    TextSpan(text: '(facultatif)', style: parcText(14, weight: 600, color: ParcColors.textMuted)),
+                  ])),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final p in _photos) _PhotoThumb(label: p),
+                      const _AddPhotoButton(),
+                    ],
                   ),
                 ],
-                const SizedBox(height: 16),
-                Text.rich(TextSpan(children: [
-                  TextSpan(text: 'Photos ', style: parcText(14, weight: 800)),
-                  TextSpan(text: '(facultatif)', style: parcText(14, weight: 600, color: ParcColors.textMuted)),
-                ])),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final p in _photos) _PhotoThumb(label: p),
-                    const _AddPhotoButton(),
-                  ],
-                ),
-              ],
               ),
             ),
           ),
@@ -111,8 +158,17 @@ class _DepartureCheckScreenState extends ConsumerState<DepartureCheckScreen> {
               color: ParcColors.surface,
               border: Border(top: BorderSide(color: ParcColors.divider)),
             ),
-            // Submission is not wired to a backend yet (see README).
-            child: ParcPrimaryButton(label: 'Valider le départ', onPressed: () {}),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_error != null) ...[ParcErrorAlert(message: _error!), const SizedBox(height: 12)],
+                ParcPrimaryButton(
+                  label: 'Valider le départ',
+                  onPressed: _busy || mission == null ? null : _submit,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -224,7 +280,7 @@ class _OdometerField extends StatelessWidget {
   const _OdometerField({required this.controller, required this.last, required this.km, required this.onChanged});
 
   final TextEditingController controller;
-  final OdometerReading? last;
+  final int? last;
   final int? km;
   final VoidCallback onChanged;
 
@@ -233,8 +289,9 @@ class _OdometerField extends StatelessWidget {
     final last = this.last;
     Widget? hint;
     if (last != null) {
-      final ref = '${FrenchDates.km(last.km)} km le ${FrenchDates.dayMonth(last.date)}';
-      final low = km != null && km! < last.km;
+      // Date of the last reading is not returned by mes_missions_chauffeur (see README).
+      final ref = '${FrenchDates.km(last)} km';
+      final low = km != null && km! < last;
       hint = Text(
         low ? 'Inférieur au dernier relevé ($ref)' : 'Cohérent avec le dernier relevé ($ref)',
         style: parcText(12, weight: 600, color: low ? ParcColors.danger : ParcColors.success),

@@ -3,12 +3,14 @@ import 'dart:ui' show CheckedState, Tristate;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/core/connectivity.dart';
+import 'package:parc_sur_mobile/features/missions/data/missions_gateway.dart';
 import 'package:parc_sur_mobile/features/missions/presentation/missions_screen.dart';
 
+import '../../helpers/fake_missions_gateway.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
-  const location = '/missions/D-0139/controle-depart';
+  const location = '/missions/m-139/controle-depart';
 
   bool isSelected(WidgetTester tester, String label) {
     final node = tester.getSemantics(find.byKey(ValueKey('departure.option.$label')));
@@ -21,7 +23,7 @@ void main() {
     expect(find.text('Contrôle de départ'), findsOneWidget);
     expect(find.text('Land Cruiser · 1150 FB 01'), findsOneWidget);
     expect(find.text('Kilométrage au compteur'), findsOneWidget);
-    expect(find.text('Cohérent avec le dernier relevé (84 112 km le 30/10)'), findsOneWidget);
+    expect(find.text('Cohérent avec le dernier relevé (84 112 km)'), findsOneWidget);
     expect(find.text('Niveau de carburant'), findsOneWidget);
     for (final level in ['1/4', '1/2', '3/4', 'Plein']) {
       expect(find.text(level), findsOneWidget);
@@ -31,7 +33,6 @@ void main() {
     expect(find.text('Documents à bord'), findsOneWidget);
     expect(find.text('Valider le départ'), findsOneWidget);
     expect(find.bySemanticsLabel('Étape 2 sur 3'), findsOneWidget);
-    // Online by default: no offline banner.
     expect(find.textContaining('Hors connexion'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -65,8 +66,56 @@ void main() {
 
     await tester.enterText(find.byKey(const Key('departure.odometer')), '84000');
     await tester.pump();
-    expect(find.text('Cohérent avec le dernier relevé (84 112 km le 30/10)'), findsNothing);
-    expect(find.text('Inférieur au dernier relevé (84 112 km le 30/10)'), findsOneWidget);
+    expect(find.text('Inférieur au dernier relevé (84 112 km)'), findsOneWidget);
+  });
+
+  testWidgets('"Valider le départ" records the check on Supabase and returns to missions', (tester) async {
+    final gateway = FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow));
+    await pumpApp(tester, location: '/missions', missions: gateway);
+    await tester.tap(find.text('Commencer le contrôle de départ'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('departure.odometer')), '84 230');
+    await tester.tap(find.text('Pneus et roue de secours'));
+    await tester.tap(find.text('Feux et clignotants'));
+    await tester.tap(find.text('Documents à bord'));
+    await tester.tap(find.text('Valider le départ'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.recorded, hasLength(1));
+    final r = gateway.recorded.single;
+    expect(r['missionId'], 'm-139');
+    expect(r['type'], 'depart');
+    expect(r['km'], 84230);
+    expect(r['fuel'], 'trois_quarts');
+    expect(r['points'], {'pneus': 'ok', 'eclairage': 'ok', 'carrosserie': 'anomalie', 'documents': 'ok'});
+    expect((r['id'] as String).length, 36);
+
+    expect(find.byType(MissionsScreen), findsOneWidget);
+    expect(find.text('Commencer le contrôle de départ'), findsNothing);
+  });
+
+  testWidgets('requires the odometer reading', (tester) async {
+    final gateway = FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow));
+    await pumpApp(tester, location: location, missions: gateway);
+
+    await tester.tap(find.text('Valider le départ'));
+    await tester.pumpAndSettle();
+    expect(find.text('Indiquez le kilométrage au compteur.'), findsOneWidget);
+    expect(gateway.recorded, isEmpty);
+  });
+
+  testWidgets('shows the server refusal', (tester) async {
+    final gateway = FakeMissionsGateway(
+      rows: prototypeMissionRows(prototypeNow),
+      recordError: const MissionsGatewayException('Cette mission ne vous est pas attribuée.'),
+    );
+    await pumpApp(tester, location: location, missions: gateway);
+
+    await tester.enterText(find.byKey(const Key('departure.odometer')), '84230');
+    await tester.tap(find.text('Valider le départ'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cette mission ne vous est pas attribuée.'), findsOneWidget);
   });
 
   testWidgets('back button returns to missions', (tester) async {

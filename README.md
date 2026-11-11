@@ -15,9 +15,9 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 ## Lancer
 
 ```bash
+cp .env.example .env              # puis renseigner l'URL Supabase et la clé publique
 flutter pub get
-flutter run                                   # profil chauffeur (par défaut)
-flutter run --dart-define=PARCSUR_ROLE=demandeur
+flutter run
 flutter test
 ```
 
@@ -33,7 +33,9 @@ Ces règles ne sont pas décidées dans les maquettes : elles sont isolées dans
 
 | Sujet | Valeur actuelle | Où la changer |
 |---|---|---|
-| Rôle de l'utilisateur connecté | `chauffeur` (ou `--dart-define=PARCSUR_ROLE`) | `lib/core/app_role.dart` |
+| Accueil d'un utilisateur à la fois chauffeur et demandeur | missions (chauffeur) | `lib/core/app_role.dart` (`AuthConfig.preferredRole`) |
+| Compte sans rôle mobile | connexion refusée avec message | `lib/features/auth/domain/auth_service.dart` |
+| Messages « identifiants incorrects », « compte non activé », « réseau » | rédigés hors maquette | `lib/features/auth/domain/login_failure.dart` |
 | Nombre minimal / maximal de passagers | 1 / sans limite | `lib/features/requests/domain/request_config.dart` |
 | « Besoin d'un chauffeur » par défaut | activé | `request_config.dart` |
 | Niveaux de carburant, liste de contrôle du véhicule | valeurs de la maquette | `lib/features/missions/domain/departure_check_config.dart` |
@@ -41,8 +43,8 @@ Ces règles ne sont pas décidées dans les maquettes : elles sont isolées dans
 
 ## Non encore branché
 
-- Authentification Supabase : « Se connecter » oriente vers l'accueil du rôle configuré, sans vérifier d'identifiants.
-- Données : missions et chauffeur sont des données de démonstration (`missions_providers.dart`), placées par rapport à la date du jour.
+- Reprise de session au redémarrage : il faut se reconnecter à chaque lancement.
+- Données : les missions sont des données de démonstration (seuls le nom et le rôle viennent de Supabase) (`missions_providers.dart`), placées par rapport à la date du jour.
 - Envoi de « Valider le départ » et de « Envoyer la demande » vers le serveur.
 - Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo, « Mot de passe oublié ? ».

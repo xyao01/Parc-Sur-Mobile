@@ -41,11 +41,3 @@ class OdometerReading {
   final DateTime date;
 }
 
-class Driver {
-  const Driver({required this.firstName, required this.lastName});
-
-  final String firstName;
-  final String lastName;
-
-  String get initials => '${firstName[0]}${lastName[0]}'.toUpperCase();
-}

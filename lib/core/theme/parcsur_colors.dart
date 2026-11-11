@@ -34,6 +34,7 @@ abstract final class ParcColors {
   // Status
   static const success = Color(0xFF1F6B45);
   static const danger = Color(0xFFB42318);
+  static const dangerBg = Color(0xFFFEF3F2);
   static const warningBg = Color(0xFFFFF8EB);
   static const warningText = Color(0xFF7A4209);
 

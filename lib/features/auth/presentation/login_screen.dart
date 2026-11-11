@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/app_role.dart';
+import '../application/session.dart';
+import '../domain/login_failure.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
 import '../../../core/widgets/parc_buttons.dart';
@@ -22,6 +24,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _showPassword = false;
+  bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -30,9 +34,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _signIn() {
-    // Authentication is not wired yet (Supabase, see README): route by configured role.
-    context.go(homeRouteFor(ref.read(currentRoleProvider)));
+  Future<void> _signIn() async {
+    if (_busy) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final profile = await ref.read(sessionProvider.notifier).signIn(_email.text, _password.text);
+      if (mounted) context.go(homeRouteFor(profile.roles));
+    } on LoginFailure catch (failure) {
+      if (mounted) setState(() => _error = failure.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = const UnexpectedFailure().message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -58,6 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ParcLabeled(
                           label: 'Adresse e-mail',
                           child: ParcTextField(
+                            key: const Key('login.email'),
                             controller: _email,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.username],
@@ -111,8 +130,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ),
+                        if (_error != null) ...[
+                          const SizedBox(height: 16),
+                          _ErrorAlert(message: _error!),
+                        ],
                         const SizedBox(height: 20),
-                        ParcPrimaryButton(label: 'Se connecter', onPressed: _signIn),
+                        ParcPrimaryButton(label: 'Se connecter', onPressed: _busy ? null : _signIn),
                         const SizedBox(height: 16),
                         ParcOutlinedButton(
                           label: "Utiliser l'empreinte digitale",
@@ -137,6 +160,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Error box from the web prototype « Connexion – blocage » (`role="alert"`).
+class _ErrorAlert extends StatelessWidget {
+  const _ErrorAlert({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(color: ParcColors.dangerBg, borderRadius: BorderRadius.circular(12)),
+        child: Text(message, style: parcText(14, weight: 600, color: ParcColors.danger, height: 1.5)),
       ),
     );
   }

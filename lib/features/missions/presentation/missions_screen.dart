@@ -9,6 +9,8 @@ import '../../../core/theme/parcsur_text.dart';
 import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parcsur_logo.dart';
+import '../../auth/application/session.dart';
+import '../../auth/domain/mobile_profile.dart';
 import '../data/missions_providers.dart';
 import '../domain/mission.dart';
 import 'chauffeur_nav.dart';
@@ -20,7 +22,7 @@ class MissionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = ref.watch(clockProvider)();
-    final driver = ref.watch(currentDriverProvider);
+    final driver = ref.watch(sessionProvider)!;
     final missions = ref.watch(missionsProvider);
     final todays = missions.where((m) => FrenchDates.sameDay(m.departure, now)).toList();
     final upcoming = missions.where((m) => m.departure.isAfter(now) && !FrenchDates.sameDay(m.departure, now)).toList();
@@ -69,7 +71,7 @@ class MissionsScreen extends ConsumerWidget {
 class _Header extends StatelessWidget {
   const _Header({required this.driver, required this.subtitle});
 
-  final Driver driver;
+  final MobileProfile driver;
   final String subtitle;
 
   @override

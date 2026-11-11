@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/clock.dart';
 import '../domain/mission.dart';
 
-/// Signed-in driver. Demo value until authentication is wired.
-final currentDriverProvider = Provider<Driver>((ref) => const Driver(firstName: 'Yao', lastName: 'Kouadio'));
-
 /// Driver missions, sorted by departure.
 ///
 /// Demo data taken from the prototype, positioned relative to the clock so the

@@ -67,6 +67,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Supabase URL + publishable key (copy .env.example to .env).
+  assets:
+    - .env
+
   fonts:
     - family: Manrope
       fonts:

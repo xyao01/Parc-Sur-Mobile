@@ -20,6 +20,7 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 | Chauffeur · 8 · Arrivée à destination | `/missions/:id/arrivee` | Mob-C08 | `arrival_screen.dart` |
 | Chauffeur · 9 · Contrôle de fin de mission | `/missions/:id/controle-fin` | Mob-C09 | `end_check_screen.dart` |
 | Chauffeur · 10 · Clôture de la demande | `/missions/:id/cloture` | Mob-C10 | `closure_screen.dart` |
+| Chauffeur · Planning | `/planning` | Mob-C11 (maquette proposée puis validée) | `planning_screen.dart` |
 | Nouvelle demande (demandeur) | `/demandes/nouvelle` | Mobile · Nouvelle demande | `lib/features/requests/presentation/new_request_screen.dart` |
 | Profil et déconnexion | `/profil` | **non maquetté** : composé de composants existants | `lib/features/profile/presentation/profile_screen.dart` |
 | Feuille basse (modale < 600 px) | composant | Modale sous 600 px | `lib/core/widgets/parc_bottom_sheet.dart` |
@@ -105,5 +106,6 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 - Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo (boutons affichés, inactifs), appel du demandeur (bouton affiché, inactif).
 - Écrans « Mot de passe oublié » et « Réinitialisation » : pas de maquette mobile ; textes repris du web, composés uniquement de composants existants. À faire valider dans Claude Design.
-- Écrans non maquettés : onglet Planning ; onglets Accueil et Alertes du demandeur ; « Saisir un plein ».
+- Écrans non maquettés : onglets Accueil et Alertes du demandeur ; « Saisir un plein ».
+- Planning : seules les missions renvoyées par `mes_missions_chauffeur()` apparaissent (départ dans les 30 jours, non clôturées) ; ni historique ni absences.
 - États non maquettés : chargement et erreur des missions, « Aucune mission aujourd'hui », mission introuvable, interrupteur désactivé (gris provisoire `#93A3B8`), kilométrage inférieur au relevé précédent ou au départ (messages rouges provisoires).

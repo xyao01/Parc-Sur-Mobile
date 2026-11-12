@@ -37,6 +37,17 @@ abstract final class FrenchDates {
     return capitalize ? _cap(s) : s;
   }
 
+  /// `Novembre 2026`
+  static String monthYear(DateTime d) => '${_cap(_months[d.month - 1])} ${d.year}';
+
+  /// `Semaine du 2 au 8 nov.` (or `du 30 nov. au 6 déc.` across two months)
+  static String weekRange(DateTime monday) {
+    final sunday = monday.add(const Duration(days: 6));
+    final end = '${sunday.day} ${_monthsShort[sunday.month - 1]}';
+    final start = monday.month == sunday.month ? '${monday.day}' : '${monday.day} ${_monthsShort[monday.month - 1]}';
+    return 'Semaine du $start au $end';
+  }
+
   /// `2 h 14`, `45 min`
   static String duration(Duration d) {
     final minutes = d.isNegative ? 0 : d.inMinutes;

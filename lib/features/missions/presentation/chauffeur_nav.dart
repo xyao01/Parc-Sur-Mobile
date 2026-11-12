@@ -18,7 +18,7 @@ class ChauffeurBottomNav extends StatelessWidget {
       currentIndex: currentIndex,
       items: [
         ParcNavItem(label: 'Missions', icon: ParcIcons.car, onTap: () => context.go(Routes.missions)),
-        const ParcNavItem(label: 'Planning', icon: ParcIcons.calendar),
+        ParcNavItem(label: 'Planning', icon: ParcIcons.calendar, onTap: () => context.go(Routes.planning)),
         ParcNavItem(label: 'Alertes', icon: ParcIcons.bell, onTap: onAlerts),
         ParcNavItem(label: 'Profil', icon: ParcIcons.user, onTap: () => context.go(Routes.profile)),
       ],

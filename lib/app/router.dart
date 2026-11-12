@@ -16,6 +16,7 @@ import '../features/missions/presentation/end_check_screen.dart';
 import '../features/missions/presentation/mission_details_screen.dart';
 import '../features/missions/presentation/mission_in_progress_screen.dart';
 import '../features/missions/presentation/new_request_notice_screen.dart';
+import '../features/missions/presentation/planning_screen.dart';
 import '../features/missions/presentation/request_response_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/requests/presentation/new_request_screen.dart';
@@ -67,6 +68,7 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
           GoRoute(path: ':id/cloture', builder: (_, s) => ClosureScreen(missionId: s.pathParameters['id']!)),
         ],
       ),
+      GoRoute(path: Routes.planning, builder: (_, _) => const PlanningScreen()),
       GoRoute(path: Routes.newRequest, builder: (_, _) => const NewRequestScreen()),
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
     ],

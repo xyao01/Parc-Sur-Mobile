@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/presentation/login_screen.dart';
-import 'package:parc_sur_mobile/features/missions/presentation/missions_screen.dart';
+import 'package:parc_sur_mobile/features/missions/presentation/driver_home_screen.dart';
 import 'package:parc_sur_mobile/features/requests/presentation/new_request_screen.dart';
 
 import '../../helpers/fake_auth_gateway.dart';
@@ -51,7 +51,7 @@ void main() {
     await pumpApp(tester, location: '/connexion', signedIn: false, gateway: gateway);
 
     await fillAndSubmit(tester);
-    expect(find.byType(MissionsScreen), findsOneWidget);
+    expect(find.byType(DriverHomeScreen), findsOneWidget);
     expect(find.text('Bonjour, Koné'), findsOneWidget);
     expect(find.text('KI'), findsOneWidget);
   });

@@ -32,6 +32,7 @@ Future<void> pumpApp(
   MobileProfile profile = prototypeProfile,
   AuthGateway? gateway,
   MissionsGateway? missions,
+  DateTime? now,
   List overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(390, 844);
@@ -41,7 +42,7 @@ Future<void> pumpApp(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        clockProvider.overrideWithValue(() => prototypeNow),
+        clockProvider.overrideWithValue(() => now ?? prototypeNow),
         authGatewayProvider.overrideWithValue(gateway ?? FakeAuthGateway()),
         missionsGatewayProvider.overrideWithValue(
           missions ?? FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow)),

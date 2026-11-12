@@ -5,11 +5,12 @@ import '../../../app/routes.dart';
 import '../../../core/widgets/parc_bottom_nav.dart';
 import '../../../core/widgets/parc_icon.dart';
 
-/// Chauffeur tab bar. Planning and Alertes are not designed yet.
+/// Chauffeur tab bar. Planning is not designed yet; Alertes opens the new request (Mob-C01).
 class ChauffeurBottomNav extends StatelessWidget {
-  const ChauffeurBottomNav({super.key, required this.currentIndex});
+  const ChauffeurBottomNav({super.key, required this.currentIndex, this.onAlerts});
 
   final int currentIndex;
+  final VoidCallback? onAlerts;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class ChauffeurBottomNav extends StatelessWidget {
       items: [
         ParcNavItem(label: 'Missions', icon: ParcIcons.car, onTap: () => context.go(Routes.missions)),
         const ParcNavItem(label: 'Planning', icon: ParcIcons.calendar),
-        const ParcNavItem(label: 'Alertes', icon: ParcIcons.bell),
+        ParcNavItem(label: 'Alertes', icon: ParcIcons.bell, onTap: onAlerts),
         ParcNavItem(label: 'Profil', icon: ParcIcons.user, onTap: () => context.go(Routes.profile)),
       ],
     );

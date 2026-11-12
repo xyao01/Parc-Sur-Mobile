@@ -38,6 +38,16 @@ abstract final class ParcColors {
   static const warningBg = Color(0xFFFFF8EB);
   static const warningText = Color(0xFF7A4209);
 
+  // Driver journey (Mob-C01…C10)
+  static const pendingBg = Color(0xFFFDEBC8); // « À répondre », « En attente »
+  static const pendingText = Color(0xFF8A4B0B);
+  static const successBg = Color(0xFFE6F4EC);
+  static const dangerSoft = Color(0xFFFEE4E2);
+  static const dangerStrong = Color(0xFF9B1C12);
+  static const dangerBorder = Color(0xFFF3B8B2);
+  static const liveDot = Color(0xFF4ADE80);
+  static const switchOff = Color(0xFF5B7BA3);
+
   static const scrim = Color(0x8C0B1F3A); // rgba(11,31,58,.55)
   static const sheetShadow = Color(0x3D0B1F3A); // rgba(11,31,58,.24)
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/presentation/new_password_screen.dart';
-import 'package:parc_sur_mobile/features/missions/presentation/missions_screen.dart';
+import 'package:parc_sur_mobile/features/missions/presentation/driver_home_screen.dart';
 
 import '../../helpers/fake_auth_gateway.dart';
 import '../../helpers/pump_app.dart';
@@ -85,7 +85,7 @@ void main() {
     await tester.tap(find.text('Enregistrer le mot de passe'));
     await tester.pumpAndSettle();
     expect(gateway.calls, contains('updatePassword:Parcsur2026'));
-    expect(find.byType(MissionsScreen), findsOneWidget);
+    expect(find.byType(DriverHomeScreen), findsOneWidget);
   });
 
   testWidgets('reports the server refusing the default password', (tester) async {

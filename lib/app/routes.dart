@@ -7,8 +7,20 @@ abstract final class Routes {
 
   /// Pages open to a signed-out user.
   static const public = {login, forgotPassword, resetPassword};
-  static const missions = '/missions';
-  static String departureCheck(String missionId) => '/missions/$missionId/controle-depart';
+
+  /// Driver journey Mob-C01…C10.
+  static const missions = '/missions'; // C01 Accueil chauffeur
+  static String requestNotice(String id) => '/missions/demandes/$id'; // C02
+  static String requestDetails(String id) => '/missions/demandes/$id/details'; // C03
+  static String requestResponse(String id, {required bool accept}) =>
+      '/missions/demandes/$id/reponse?choix=${accept ? 'accepter' : 'refuser'}'; // C04
+  static String departurePreparation(String id) => '/missions/$id/preparation'; // C05
+  static String departureValidation(String id) => '/missions/$id/validation'; // C06
+  static String inProgress(String id) => '/missions/$id/en-cours'; // C07
+  static String arrival(String id) => '/missions/$id/arrivee'; // C08
+  static String endCheck(String id) => '/missions/$id/controle-fin'; // C09
+  static String closure(String id) => '/missions/$id/cloture'; // C10
+
   static const newRequest = '/demandes/nouvelle';
   static const profile = '/profil';
 }

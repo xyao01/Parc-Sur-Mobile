@@ -7,8 +7,16 @@ import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/new_password_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
-import '../features/missions/presentation/departure_check_screen.dart';
-import '../features/missions/presentation/missions_screen.dart';
+import '../features/missions/presentation/arrival_screen.dart';
+import '../features/missions/presentation/closure_screen.dart';
+import '../features/missions/presentation/departure_preparation_screen.dart';
+import '../features/missions/presentation/departure_validation_screen.dart';
+import '../features/missions/presentation/driver_home_screen.dart';
+import '../features/missions/presentation/end_check_screen.dart';
+import '../features/missions/presentation/mission_details_screen.dart';
+import '../features/missions/presentation/mission_in_progress_screen.dart';
+import '../features/missions/presentation/new_request_notice_screen.dart';
+import '../features/missions/presentation/request_response_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/requests/presentation/new_request_screen.dart';
 import 'routes.dart';
@@ -37,14 +45,26 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
       GoRoute(path: Routes.newPassword, builder: (_, _) => const NewPasswordScreen()),
       GoRoute(path: Routes.forgotPassword, builder: (_, _) => const ForgotPasswordScreen()),
       GoRoute(path: Routes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
+      // Driver journey Mob-C01…C10.
       GoRoute(
         path: Routes.missions,
-        builder: (_, _) => const MissionsScreen(),
+        builder: (_, _) => const DriverHomeScreen(),
         routes: [
+          GoRoute(path: 'demandes/:id', builder: (_, s) => NewRequestNoticeScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: 'demandes/:id/details', builder: (_, s) => MissionDetailsScreen(missionId: s.pathParameters['id']!)),
           GoRoute(
-            path: ':id/controle-depart',
-            builder: (_, state) => DepartureCheckScreen(missionId: state.pathParameters['id']!),
+            path: 'demandes/:id/reponse',
+            builder: (_, s) => RequestResponseScreen(
+              missionId: s.pathParameters['id']!,
+              accept: s.uri.queryParameters['choix'] != 'refuser',
+            ),
           ),
+          GoRoute(path: ':id/preparation', builder: (_, s) => DeparturePreparationScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/validation', builder: (_, s) => DepartureValidationScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/en-cours', builder: (_, s) => MissionInProgressScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/arrivee', builder: (_, s) => ArrivalScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/controle-fin', builder: (_, s) => EndCheckScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/cloture', builder: (_, s) => ClosureScreen(missionId: s.pathParameters['id']!)),
         ],
       ),
       GoRoute(path: Routes.newRequest, builder: (_, _) => const NewRequestScreen()),

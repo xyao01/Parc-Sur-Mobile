@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/mission_flow_config.dart';
 import 'missions_gateway.dart';
 
 class SupabaseMissionsGateway implements MissionsGateway {
@@ -16,6 +17,23 @@ class SupabaseMissionsGateway implements MissionsGateway {
         return [for (final row in (result as List? ?? const [])) Map<String, dynamic>.from(row as Map)];
       });
 
+  /// The manager assigns the driver when validating a request: there is no answer step in the database.
+  @override
+  Future<List<Map<String, dynamic>>> pendingRequests() async => const [];
+
+  @override
+  Future<void> respondToRequest({required String missionId, required bool accept, String? reason, String? details}) =>
+      throw const MissionsGatewayException(MissionFlowConfig.unavailableMessage);
+
+  @override
+  Future<void> reportIncident({
+    required String missionId,
+    required String kind,
+    String? description,
+    required bool blocksDeparture,
+  }) =>
+      throw const MissionsGatewayException(MissionFlowConfig.unavailableMessage);
+
   @override
   Future<void> recordControl({
     required String id,
@@ -24,6 +42,7 @@ class SupabaseMissionsGateway implements MissionsGateway {
     required int odometerKm,
     required String fuel,
     required Map<String, String> points,
+    String? observations,
     required DateTime enteredAt,
   }) =>
       _guard(() => _client.rpc('enregistrer_controle', params: {
@@ -33,7 +52,7 @@ class SupabaseMissionsGateway implements MissionsGateway {
             'p_kilometrage': odometerKm,
             'p_carburant': fuel,
             'p_points': points,
-            'p_observations': null,
+            'p_observations': observations,
             'p_saisi_le': enteredAt.toUtc().toIso8601String(),
           }));
 

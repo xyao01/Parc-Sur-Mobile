@@ -63,6 +63,22 @@ class UnexpectedFailure extends LoginFailure {
   String get message => 'Une erreur est survenue. Réessayez dans un instant.';
 }
 
+// Forgotten password (web app wording).
+
+class MissingEmail extends LoginFailure {
+  const MissingEmail();
+
+  @override
+  String get message => 'Saisissez votre adresse e-mail.';
+}
+
+class TooManyResetRequests extends LoginFailure {
+  const TooManyResetRequests();
+
+  @override
+  String get message => 'Trop de demandes en peu de temps. Réessayez dans quelques minutes.';
+}
+
 // New password (web app wording).
 
 class PasswordPolicyFailure extends LoginFailure {

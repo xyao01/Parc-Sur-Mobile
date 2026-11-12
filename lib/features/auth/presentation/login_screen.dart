@@ -91,8 +91,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Semantics(
                 link: true,
                 child: InkWell(
-                  // Mobile reset flow not designed yet (see README).
-                  onTap: () {},
+                  onTap: () => context.go(Routes.forgotPassword),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(

@@ -47,6 +47,26 @@ class AuthService {
     });
   }
 
+  /// « Mot de passe oublié » (web `demanderReinitialisation`): unknown accounts get the
+  /// same answer as a successful send; only the send limit and the network are reported.
+  Future<void> requestPasswordReset(String rawEmail, {required String redirectTo}) async {
+    final email = rawEmail.trim().toLowerCase();
+    if (email.isEmpty) throw const MissingEmail();
+    try {
+      await _gateway.requestPasswordReset(email, redirectTo: redirectTo);
+    } on AuthGatewayException catch (e) {
+      if (e.error == AuthGatewayError.rateLimited) throw const TooManyResetRequests();
+      if (e.error == AuthGatewayError.network) throw const NetworkFailure();
+    }
+  }
+
+  /// Reset link opened: saves the new password, then closes the recovery session so
+  /// the user signs in with it (web `reinitialiserMotDePasse`). Throws a [LoginFailure].
+  Future<void> resetPassword(String password, String confirmation) async {
+    await setPassword(password, confirmation);
+    await signOut(null);
+  }
+
   /// First sign-in: replaces the provisional password. Throws a [LoginFailure].
   Future<void> setPassword(String password, String confirmation) async {
     if (!PasswordPolicy.isValid(password)) throw const PasswordPolicyFailure();

@@ -23,7 +23,16 @@ abstract interface class AuthGateway {
   Future<void> logSession(String action);
 
   Future<void> signOut();
+
+  /// Supabase Auth `recover`: e-mails a reset link (sent by the `auth-email-hook` function)
+  /// that reopens the app at [redirectTo].
+  Future<void> requestPasswordReset(String email, {required String redirectTo});
+
+  /// Reset links opened from the e-mail: a recovery session is open, or the link is expired / already used.
+  Stream<RecoveryLink> get recoveryLinks;
 }
+
+enum RecoveryLink { opened, invalid }
 
 class SignInResult {
   const SignInResult({required this.email, required this.provisionalPassword});
@@ -34,7 +43,7 @@ class SignInResult {
   final bool provisionalPassword;
 }
 
-enum AuthGatewayError { invalidCredentials, emailNotConfirmed, samePassword, weakPassword, network, other }
+enum AuthGatewayError { invalidCredentials, emailNotConfirmed, samePassword, weakPassword, rateLimited, network, other }
 
 class AuthGatewayException implements Exception {
   const AuthGatewayException(this.error);

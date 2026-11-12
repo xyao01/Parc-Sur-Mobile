@@ -62,12 +62,27 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<void> signOut() => _guard(() => _client.auth.signOut());
 
+  @override
+  Future<void> requestPasswordReset(String email, {required String redirectTo}) =>
+      _guard(() => _client.auth.resetPasswordForEmail(email, redirectTo: redirectTo));
+
+  /// supabase_flutter opens the session from the deep link itself (PKCE code exchange)
+  /// and reports it as `passwordRecovery`; an expired or used link arrives as a stream error.
+  @override
+  Stream<RecoveryLink> get recoveryLinks => _client.auth.onAuthStateChange
+      .where((s) => s.event == AuthChangeEvent.passwordRecovery)
+      .map((_) => RecoveryLink.opened)
+      .transform(StreamTransformer<RecoveryLink, RecoveryLink>.fromHandlers(
+        handleError: (_, _, sink) => sink.add(RecoveryLink.invalid),
+      ));
+
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
       return await call();
     } on AuthRetryableFetchException {
       throw const AuthGatewayException(AuthGatewayError.network);
     } on AuthException catch (e) {
+      if (e.statusCode == '429') throw const AuthGatewayException(AuthGatewayError.rateLimited);
       final error = switch (e.code) {
         'invalid_credentials' => AuthGatewayError.invalidCredentials,
         'email_not_confirmed' => AuthGatewayError.emailNotConfirmed,

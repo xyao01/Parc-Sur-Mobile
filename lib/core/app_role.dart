@@ -9,6 +9,15 @@ abstract final class AuthConfig {
   /// Failed attempts before lock. Mirrors `parametres_connexion()` in the
   /// database (not callable before sign-in); only used in the lock message.
   static const maxFailedAttempts = 5;
+
+  /// Where the reset link of the e-mail sends the user back: this app (deep link declared in
+  /// `AndroidManifest.xml`). Overridable with `passwordResetRedirect` in `.env`. Must be listed in
+  /// Supabase › Authentication › URL Configuration › Redirect URLs, otherwise Supabase sends the
+  /// user to the Site URL (web app) instead.
+  static const passwordResetRedirect = 'com.syabetech.parcsur://reinitialiser-mot-de-passe';
+
+  /// Validity of the reset link, as set in Supabase Auth (shown in the messages only).
+  static const resetLinkValidityHours = 1;
 }
 
 /// Home route for a signed-in user's roles.

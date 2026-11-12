@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 
 /// In-memory [AuthGateway] recording the calls made by [AuthService].
@@ -8,6 +10,7 @@ class FakeAuthGateway implements AuthGateway {
     this.lockAfterFailure,
     this.provisionalPassword = false,
     this.updatePasswordError,
+    this.resetError,
     this.profile = const {'prenom': 'Yao', 'nom': 'Kouadio', 'demandeur': false, 'chauffeur': true},
   });
 
@@ -59,4 +62,20 @@ class FakeAuthGateway implements AuthGateway {
 
   @override
   Future<void> signOut() async => calls.add('signOut');
+
+  AuthGatewayError? resetError;
+
+  @override
+  Future<void> requestPasswordReset(String email, {required String redirectTo}) async {
+    calls.add('requestReset:$email>$redirectTo');
+    if (resetError != null) throw AuthGatewayException(resetError!);
+  }
+
+  final _recovery = StreamController<RecoveryLink>.broadcast();
+
+  /// Simulates the reset link from the e-mail reopening the app.
+  void emitRecovery(RecoveryLink link) => _recovery.add(link);
+
+  @override
+  Stream<RecoveryLink> get recoveryLinks => _recovery.stream;
 }

@@ -2,6 +2,11 @@
 abstract final class Routes {
   static const login = '/connexion';
   static const newPassword = '/premiere-connexion';
+  static const forgotPassword = '/mot-de-passe-oublie';
+  static const resetPassword = '/reinitialiser-mot-de-passe';
+
+  /// Pages open to a signed-out user.
+  static const public = {login, forgotPassword, resetPassword};
   static const missions = '/missions';
   static String departureCheck(String missionId) => '/missions/$missionId/controle-depart';
   static const newRequest = '/demandes/nouvelle';

@@ -9,7 +9,7 @@ import '../../../core/theme/parcsur_text.dart';
 import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
-import '../../auth/application/session.dart';
+import '../../profile/data/profile_providers.dart';
 import '../../missions/presentation/chauffeur_nav.dart';
 import '../../missions/presentation/journey_widgets.dart';
 import '../../requests/presentation/demandeur_nav.dart';
@@ -44,7 +44,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
-    final roles = ref.watch(sessionProvider)?.roles ?? const <AppRole>{};
+    final space = ref.watch(activeSpaceProvider);
     final async = ref.watch(alertsProvider);
     final alerts = async.value ?? const <AppAlert>[];
     final unread = alerts.where((a) => a.unread).length;
@@ -101,7 +101,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: roles.contains(AppRole.chauffeur)
+      bottomNavigationBar: space == AppRole.chauffeur
           ? const ChauffeurBottomNav(currentIndex: 2)
           : const DemandeurBottomNav(currentIndex: 2),
     );

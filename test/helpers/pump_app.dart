@@ -12,12 +12,15 @@ import 'package:parc_sur_mobile/features/alerts/data/alerts_gateway.dart';
 import 'package:parc_sur_mobile/features/alerts/data/alerts_providers.dart';
 import 'package:parc_sur_mobile/features/missions/data/missions_gateway.dart';
 import 'package:parc_sur_mobile/features/missions/data/missions_providers.dart';
+import 'package:parc_sur_mobile/features/profile/data/profile_gateway.dart';
+import 'package:parc_sur_mobile/features/profile/data/profile_providers.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_gateway.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_providers.dart';
 
 import 'fake_alerts_gateway.dart';
 import 'fake_auth_gateway.dart';
 import 'fake_missions_gateway.dart';
+import 'fake_profile_gateway.dart';
 import 'fake_requests_gateway.dart';
 
 /// Date of the prototype screens (Tuesday 3 November 2026, 06:00).
@@ -41,6 +44,7 @@ Future<void> pumpApp(
   MissionsGateway? missions,
   AlertsGateway? alerts,
   RequestsGateway? requests,
+  ProfileGateway? profiles,
   Features features = const Features.all(),
   DateTime? now,
   List overrides = const [],
@@ -59,6 +63,7 @@ Future<void> pumpApp(
           missions ?? FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow)),
         ),
         alertsGatewayProvider.overrideWithValue(alerts ?? FakeAlertsGateway()),
+        profileGatewayProvider.overrideWithValue(profiles ?? FakeProfileGateway()),
         requestsGatewayProvider.overrideWithValue(
           requests ?? FakeRequestsGateway(rows: prototypeRequestRows(prototypeNow)),
         ),

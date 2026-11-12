@@ -39,9 +39,9 @@ class MobileProfile {
   String get initials =>
       [firstName, lastName].where((s) => s.isNotEmpty).map((s) => s[0]).join().toUpperCase();
 
-  MobileProfile copyWith({bool? mustChangePassword}) => MobileProfile(
-        firstName: firstName,
-        lastName: lastName,
+  MobileProfile copyWith({bool? mustChangePassword, String? firstName, String? lastName}) => MobileProfile(
+        firstName: firstName ?? this.firstName,
+        lastName: lastName ?? this.lastName,
         roles: roles,
         email: email,
         mustChangePassword: mustChangePassword ?? this.mustChangePassword,

@@ -32,7 +32,8 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 | Demandeur · 8 · Suivi de la mission | `/demandes/:id/suivi` | Mob-D08 | `request_tracking_screen.dart` |
 | Demandeur · 9 · Fin de mission | `/demandes/:id/fin` | Mob-D09 | `request_end_screen.dart` |
 | Demandeur · 10 · Évaluation | `/demandes/:id/evaluation` | Mob-D10 | `request_rating_screen.dart` |
-| Profil et déconnexion | `/profil` | **non maquetté** : composé de composants existants | `lib/features/profile/presentation/profile_screen.dart` |
+| Profil (espace, coordonnées, mot de passe, déconnexion) | `/profil`, `/profil/mot-de-passe` | Mob-P01 (maquette proposée puis validée) | `lib/features/profile/presentation/profile_screen.dart` |
+| Page en maintenance (vues sans backend) | `/maintenance?vue=…` | Mob-X01 | `lib/core/widgets/maintenance_screen.dart` |
 | Feuille basse (modale < 600 px) | composant | Modale sous 600 px | `lib/core/widgets/parc_bottom_sheet.dart` |
 
 ## Lancer
@@ -69,6 +70,9 @@ flutter test
 | Annulation (D06) | `rpc/annuler_demande` | Demandes › Saisie › modifier |
 | Signaler un problème (D08), évaluation (D10) | **aucun appel : pas d'équivalent en base** ; l'application affiche « pas encore disponible » | — |
 | Déconnexion | Supabase Auth `signOut` | — |
+| Reprise de session au lancement | session gardée par Supabase + `rpc/profil_mobile` (sans nouvelle « connexion réussie ») | authentifié |
+| Profil : coordonnées du demandeur | lecture de sa ligne `utilisateur` (RLS) ; enregistrement par `rpc/modifier_mon_compte` | connecté |
+| Profil : changer le mot de passe | Supabase Auth `updateUser` (même politique que la première connexion) | — |
 
 Politique de mot de passe identique au web : 8 caractères minimum, dont une majuscule et un chiffre.
 
@@ -121,7 +125,8 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 ## Non encore branché
 
 - Côté base : réponse du chauffeur à une demande, disponibilité, incidents, blocage du départ (voir « Backend Supabase utilisé »).
-- Reprise de session au redémarrage : il faut se reconnecter à chaque lancement.
+- Vues sans backend : elles ouvrent « Page en maintenance » tant que leur interrupteur est éteint dans `lib/core/features.dart` (réponse aux demandes, disponibilité, incident, blocage du départ, photos, appels, problème signalé par le demandeur, évaluation, informations du chauffeur dans le Profil).
+- Profil du chauffeur : téléphone et permis non lisibles (table `chauffeur` fermée aux chauffeurs) → « Page en maintenance ».
 - Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo (boutons affichés, inactifs), appel du demandeur (bouton affiché, inactif).
 - Écrans « Mot de passe oublié » et « Réinitialisation » : pas de maquette mobile ; textes repris du web, composés uniquement de composants existants. À faire valider dans Claude Design.

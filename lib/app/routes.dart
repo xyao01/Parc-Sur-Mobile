@@ -41,4 +41,5 @@ abstract final class Routes {
   static String requestEnd(String id) => '/demandes/$id/fin'; // D09
   static String requestRating(String id) => '/demandes/$id/evaluation'; // D10
   static const profile = '/profil';
+  static const changePassword = '/profil/mot-de-passe';
 }

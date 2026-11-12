@@ -4,19 +4,26 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/app_role.dart';
+import '../../../core/features.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/widgets/parc_buttons.dart';
+import '../../../core/widgets/parc_error_alert.dart';
+import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parcsur_logo.dart';
 import '../../auth/application/session.dart';
 import '../../auth/domain/mobile_profile.dart';
 import '../../missions/presentation/chauffeur_nav.dart';
+import '../../missions/presentation/journey_widgets.dart';
 import '../../requests/presentation/demandeur_nav.dart';
+import '../data/profile_providers.dart';
+import 'account_sheet.dart';
 
-/// Profil — signed-in user (from `profil_mobile()` and the Supabase account) and sign-out.
-///
-/// Not in the prototype: built only from existing design system pieces
-/// (navy header of « Mes missions », white bordered cards, outlined button).
+/// Version shown in the Profile (same as `pubspec.yaml`).
+const appVersion = '1.0.0';
+
+/// Mob-P01 · Profil (chauffeur et demandeur), validated proposal.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -27,19 +34,59 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _busy = false;
 
-  Future<void> _signOut() async {
-    if (_busy) return;
+  Future<void> _askSignOut() async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: ParcColors.scrim,
+      builder: (sheet) => Semantics(
+        container: true,
+        label: 'Se déconnecter',
+        child: Container(
+          decoration: const BoxDecoration(
+            color: ParcColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.fromLTRB(20, 22, 20, 24 + MediaQuery.paddingOf(sheet).bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Semantics(header: true, child: Text('Se déconnecter ?', style: parcText(20, weight: 800))),
+              const SizedBox(height: 14),
+              Text(
+                'Vous devrez saisir à nouveau votre adresse e-mail et votre mot de passe.',
+                style: parcText(14, color: ParcColors.textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: 14),
+              JourneyActionButton(label: 'Se déconnecter', danger: true, onPressed: () => Navigator.of(sheet).pop(true)),
+              const SizedBox(height: 14),
+              ParcOutlinedButton(label: 'Annuler', height: 48, onPressed: () => Navigator.of(sheet).pop(false)),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
+    // The local session is closed even if the server cannot be reached.
     await ref.read(sessionProvider.notifier).signOut();
     if (mounted) context.go(Routes.login);
+  }
+
+  void _switchTo(AppRole role) {
+    ref.read(activeSpaceProvider.notifier).select(role);
+    context.go(role == AppRole.chauffeur ? Routes.missions : Routes.requesterHome);
   }
 
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(sessionProvider);
     if (profile == null) return const Scaffold(backgroundColor: ParcColors.background);
+    final space = ref.watch(activeSpaceProvider) ?? profile.roles.first;
+    final both = profile.roles.length > 1;
 
-    final isDriver = profile.roles.contains(AppRole.chauffeur);
     return Scaffold(
       backgroundColor: ParcColors.background,
       body: Column(
@@ -52,39 +99,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      'MES ACCÈS',
-                      style: parcText(13, weight: 800, color: ParcColors.textMuted, letterSpacing: 0.5),
+                  if (both) ...[
+                    const SectionCaps('Mon espace'),
+                    const SizedBox(height: 12),
+                    SegmentedChoice(
+                      labels: const ['Espace chauffeur', 'Espace demandeur'],
+                      selected: space == AppRole.chauffeur ? 0 : 1,
+                      selectedColors: const [ParcColors.primary, ParcColors.primary],
+                      onChanged: (i) => _switchTo(i == 0 ? AppRole.chauffeur : AppRole.demandeur),
+                    ),
+                    const SizedBox(height: 8),
+                    Text("Changez d'espace sans vous déconnecter.", style: parcText(12, color: ParcColors.textMuted)),
+                    const SizedBox(height: 20),
+                  ],
+                  const SectionCaps('Mes informations'),
+                  const SizedBox(height: 12),
+                  space == AppRole.chauffeur ? const _DriverDetails() : _RequesterDetails(profile: profile),
+                  const SizedBox(height: 20),
+                  const SectionCaps('Sécurité'),
+                  const SizedBox(height: 12),
+                  WhiteCard(
+                    radius: 14,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _LinkRow(
+                      icon: ParcIcons.lock,
+                      label: 'Changer mon mot de passe',
+                      onTap: () => context.push(Routes.changePassword),
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: ParcColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: ParcColors.divider),
-                    ),
-                    child: Column(
-                      children: [
-                        for (final (i, role) in profile.roles.indexed) ...[
-                          if (i > 0) const Divider(height: 1, color: ParcColors.divider),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(_roleLabel(role), style: parcText(15, weight: 700))),
-                                Text(_roleDetail(role), style: parcText(13, color: ParcColors.textMuted)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Besoin d'aide ? Contactez l'administrateur de ParcSûr.",
+                    textAlign: TextAlign.center,
+                    style: parcText(13, color: ParcColors.textMuted, height: 1.5),
                   ),
-                  const SizedBox(height: 24),
-                  ParcOutlinedButton(label: 'Se déconnecter', onPressed: _busy ? null : _signOut),
+                  Text('Version $appVersion', textAlign: TextAlign.center, style: parcText(13, color: ParcColors.textMuted)),
+                  const SizedBox(height: 16),
+                  _busy
+                      ? const Center(child: CircularProgressIndicator(color: ParcColors.danger))
+                      : _SignOutButton(onPressed: _askSignOut),
                 ],
               ),
             ),
@@ -92,19 +145,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
       bottomNavigationBar:
-          isDriver ? const ChauffeurBottomNav(currentIndex: 3) : const DemandeurBottomNav(currentIndex: 3),
+          space == AppRole.chauffeur ? const ChauffeurBottomNav(currentIndex: 3) : const DemandeurBottomNav(currentIndex: 3),
     );
   }
-
-  static String _roleLabel(AppRole role) => switch (role) {
-        AppRole.chauffeur => 'Chauffeur',
-        AppRole.demandeur => 'Demandeur',
-      };
-
-  static String _roleDetail(AppRole role) => switch (role) {
-        AppRole.chauffeur => 'Missions',
-        AppRole.demandeur => 'Demandes de véhicule',
-      };
 }
 
 class _Header extends StatelessWidget {
@@ -117,26 +160,20 @@ class _Header extends StatelessWidget {
     final top = MediaQuery.paddingOf(context).top;
     return Container(
       color: ParcColors.navy,
-      padding: EdgeInsets.fromLTRB(20, 22 + top, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 22 + top, 20, 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              ParcSurMark(size: 28),
-              SizedBox(width: 8),
-              ParcSurWordmark(fontSize: 18),
-            ],
-          ),
-          const SizedBox(height: 20),
+          const Row(children: [ParcSurMark(size: 28), SizedBox(width: 8), ParcSurWordmark(fontSize: 18)]),
+          const SizedBox(height: 18),
           Row(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 64,
+                height: 64,
                 decoration: const BoxDecoration(color: ParcColors.headerChip, shape: BoxShape.circle),
                 alignment: Alignment.center,
-                child: Text(profile.initials, style: parcText(18, weight: 800, color: ParcColors.surface)),
+                child: Text(profile.initials, style: parcText(22, weight: 800, color: ParcColors.surface)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -147,14 +184,183 @@ class _Header extends StatelessWidget {
                       header: true,
                       child: Text(profile.fullName, style: parcText(22, weight: 800, color: ParcColors.surface)),
                     ),
-                    if (profile.email.isNotEmpty)
-                      Text(profile.email, style: parcText(13, color: ParcColors.onDarkMuted)),
+                    if (profile.email.isNotEmpty) Text(profile.email, style: parcText(13, color: ParcColors.onDarkMuted)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final role in profile.roles)
+                          StatusChip(
+                            role == AppRole.chauffeur ? 'Chauffeur' : 'Demandeur',
+                            bg: ParcColors.headerChip,
+                            fg: ParcColors.surface,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Driver's phone and licence: table `chauffeur` not readable by drivers → « Page en maintenance ».
+class _DriverDetails extends ConsumerWidget {
+  const _DriverDetails();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wired = ref.watch(featuresProvider).driverAccountDetails;
+    return WhiteCard(
+      radius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: _LinkRow(
+        icon: ParcIcons.user,
+        label: 'Téléphone, permis',
+        onTap: wired ? () {} : () => openMaintenance(context, 'Mes informations de chauffeur'),
+      ),
+    );
+  }
+}
+
+class _RequesterDetails extends ConsumerWidget {
+  const _RequesterDetails({required this.profile});
+
+  final MobileProfile profile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(accountDetailsProvider);
+    final d = async.value;
+    if (async.isLoading && !async.hasValue) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator(color: ParcColors.primary)),
+      );
+    }
+    if (async.hasError && !async.hasValue) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const ParcErrorAlert(message: 'Impossible de charger vos informations.'),
+          const SizedBox(height: 12),
+          ParcOutlinedButton(label: 'Réessayer', height: 46, onPressed: () => ref.invalidate(accountDetailsProvider)),
+        ],
+      );
+    }
+    final rows = [
+      ('Téléphone', d?.phone ?? '—'),
+      ('Fonction', d?.function ?? '—'),
+      ('Localisation', d?.location ?? '—'),
+    ];
+    return WhiteCard(
+      radius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          for (final r in rows)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: ParcColors.dividerSoft))),
+              child: Row(
+                children: [
+                  Text(r.$1, style: parcText(13, weight: 600, color: ParcColors.textMuted)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(r.$2, textAlign: TextAlign.right, style: parcText(14, weight: 800))),
+                ],
+              ),
+            ),
+          Semantics(
+            button: true,
+            child: InkWell(
+              onTap: () => showAccountSheet(context, profile: profile, details: d),
+              child: SizedBox(
+                height: 48,
+                child: Row(
+                  children: [
+                    Expanded(child: Text('Modifier mes coordonnées', style: parcText(14, weight: 800, color: ParcColors.primary))),
+                    const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.primary),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({required this.icon, required this.label, required this.onTap});
+
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: ParcColors.primarySoft, borderRadius: BorderRadius.circular(10)),
+                alignment: Alignment.center,
+                child: ParcIcon(icon, size: 18, color: ParcColors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(label, style: parcText(14, weight: 700))),
+              const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignOutButton extends StatelessWidget {
+  const _SignOutButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: Material(
+        color: ParcColors.dangerBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: ParcColors.dangerBorder, width: 1.5),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            height: 52,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const ParcIcon(ParcIcons.logout, size: 18, color: ParcColors.danger),
+                const SizedBox(width: 8),
+                Text('Se déconnecter', style: parcText(15, weight: 800, color: ParcColors.danger)),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

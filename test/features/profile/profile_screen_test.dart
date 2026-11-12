@@ -1,42 +1,155 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:parc_sur_mobile/core/app_role.dart';
+import 'package:parc_sur_mobile/core/features.dart';
+import 'package:parc_sur_mobile/core/widgets/maintenance_screen.dart';
+import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
 import 'package:parc_sur_mobile/features/auth/presentation/login_screen.dart';
+import 'package:parc_sur_mobile/features/missions/presentation/chauffeur_nav.dart';
+import 'package:parc_sur_mobile/features/profile/data/profile_gateway.dart';
+import 'package:parc_sur_mobile/features/profile/presentation/change_password_screen.dart';
 import 'package:parc_sur_mobile/features/profile/presentation/profile_screen.dart';
+import 'package:parc_sur_mobile/features/requests/presentation/demandeur_nav.dart';
+import 'package:parc_sur_mobile/features/requests/presentation/requester_home_screen.dart';
 
 import '../../helpers/fake_auth_gateway.dart';
+import '../../helpers/fake_profile_gateway.dart';
 import '../../helpers/pump_app.dart';
 
+const requester = MobileProfile(
+  firstName: 'Koffi',
+  lastName: 'Ouattara',
+  email: 'koffi.ouattara@ministere.ci',
+  roles: {AppRole.demandeur},
+);
+
+Future<void> tapText(WidgetTester tester, String text) async {
+  final finder = find.text(text).last;
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
 void main() {
-  testWidgets('shows the signed-in user and roles', (tester) async {
+  testWidgets('the Profil tab opens the profile page', (tester) async {
+    await pumpApp(tester, location: '/missions');
+    await tapText(tester, 'Profil');
+    expect(find.byType(ProfileScreen), findsOneWidget);
+  });
+
+  testWidgets('driver and requester: header, roles and « Mon espace »', (tester) async {
     await pumpApp(tester, location: '/profil');
 
-    expect(find.byType(ProfileScreen), findsOneWidget);
     expect(find.text('YK'), findsOneWidget);
     expect(find.text('Yao Kouadio'), findsOneWidget);
     expect(find.text('yao.kouadio@ministere.ci'), findsOneWidget);
     expect(find.text('Chauffeur'), findsOneWidget);
     expect(find.text('Demandeur'), findsOneWidget);
-    expect(find.text('Se déconnecter'), findsOneWidget);
+    expect(find.text('MON ESPACE'), findsOneWidget);
+    expect(find.text('Espace chauffeur'), findsOneWidget);
+    expect(find.text('Espace demandeur'), findsOneWidget);
+    expect(find.byType(ChauffeurBottomNav), findsOneWidget);
+    expect(find.text('Changer mon mot de passe'), findsOneWidget);
+    expect(find.text("Besoin d'aide ? Contactez l'administrateur de ParcSûr."), findsOneWidget);
+    expect(find.text('Version 1.0.0'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the Profil tab opens the profile page', (tester) async {
-    await pumpApp(tester, location: '/missions');
+  testWidgets('switching to the requester space opens its home, without signing out', (tester) async {
+    final auth = FakeAuthGateway();
+    await pumpApp(tester, location: '/profil', gateway: auth);
+    await tapText(tester, 'Espace demandeur');
 
-    await tester.tap(find.text('Profil'));
-    await tester.pumpAndSettle();
-    expect(find.byType(ProfileScreen), findsOneWidget);
+    expect(find.byType(RequesterHomeScreen), findsOneWidget);
+    expect(auth.calls, isNot(contains('signOut')));
+
+    await tapText(tester, 'Profil');
+    expect(find.byType(DemandeurBottomNav), findsOneWidget);
+    expect(find.text('+225 07 00 00 00 00'), findsOneWidget);
   });
 
-  testWidgets('"Se déconnecter" signs out on Supabase and returns to login', (tester) async {
-    final gateway = FakeAuthGateway();
-    await pumpApp(tester, location: '/profil', gateway: gateway);
+  testWidgets('driver details open « Page en maintenance » (no backend yet)', (tester) async {
+    await pumpApp(tester, location: '/profil', features: const Features());
+    await tapText(tester, 'Téléphone, permis');
+    expect(find.byType(MaintenanceScreen), findsOneWidget);
+  });
 
-    await tester.tap(find.text('Se déconnecter'));
-    await tester.pumpAndSettle();
-    expect(gateway.calls, contains('signOut'));
+  testWidgets('requester only: no space switch, details from Supabase', (tester) async {
+    await pumpApp(tester, location: '/profil', profile: requester);
+
+    expect(find.text('MON ESPACE'), findsNothing);
+    expect(find.text('Téléphone'), findsOneWidget);
+    expect(find.text('+225 07 00 00 00 00'), findsOneWidget);
+    expect(find.text('Fonction'), findsOneWidget);
+    expect(find.text('Agent'), findsOneWidget);
+    expect(find.text('Localisation'), findsOneWidget);
+    expect(find.text('Abidjan, Plateau'), findsOneWidget);
+    expect(find.byType(DemandeurBottomNav), findsOneWidget);
+  });
+
+  testWidgets('« Modifier mes coordonnées » saves through modifier_mon_compte', (tester) async {
+    final profiles = FakeProfileGateway();
+    await pumpApp(tester, location: '/profil', profile: requester, profiles: profiles);
+    await tapText(tester, 'Modifier mes coordonnées');
+
+    expect(find.text('Mes coordonnées'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('account.phone')), '+225 01 02 03 04 05');
+    await tester.enterText(find.byKey(const Key('account.firstName')), 'Koffi Jean');
+    await tapText(tester, 'Enregistrer');
+
+    expect(profiles.updates.single, {
+      'prenom': 'Koffi Jean',
+      'nom': 'Ouattara',
+      'phone': '+225 01 02 03 04 05',
+      'localisation': 'Abidjan, Plateau',
+    });
+    expect(find.text('Mes coordonnées'), findsNothing);
+    expect(find.text('Koffi Jean Ouattara'), findsOneWidget);
+    expect(find.text('+225 01 02 03 04 05'), findsOneWidget);
+  });
+
+  testWidgets('the server refusal is shown in the sheet', (tester) async {
+    final profiles = FakeProfileGateway(updateError: const ProfileGatewayException('Saisissez votre numéro de téléphone.'));
+    await pumpApp(tester, location: '/profil', profile: requester, profiles: profiles);
+    await tapText(tester, 'Modifier mes coordonnées');
+    await tapText(tester, 'Enregistrer');
+    expect(find.text('Saisissez votre numéro de téléphone.'), findsOneWidget);
+  });
+
+  testWidgets('« Changer mon mot de passe » saves the new password', (tester) async {
+    final auth = FakeAuthGateway();
+    await pumpApp(tester, location: '/profil', gateway: auth);
+    await tapText(tester, 'Changer mon mot de passe');
+
+    expect(find.byType(ChangePasswordScreen), findsOneWidget);
+    await tester.enterText(
+      find.descendant(of: find.byKey(const Key('newPassword.password')), matching: find.byType(EditableText)),
+      'Parcsur2027',
+    );
+    await tester.enterText(
+      find.descendant(of: find.byKey(const Key('newPassword.confirmation')), matching: find.byType(EditableText)),
+      'Parcsur2027',
+    );
+    await tapText(tester, 'Enregistrer le mot de passe');
+
+    expect(auth.calls, contains('updatePassword:Parcsur2027'));
+    expect(find.text('Votre mot de passe a été modifié.'), findsOneWidget);
+  });
+
+  testWidgets('« Se déconnecter » asks for confirmation, then signs out', (tester) async {
+    final auth = FakeAuthGateway();
+    await pumpApp(tester, location: '/profil', gateway: auth);
+
+    await tapText(tester, 'Se déconnecter');
+    expect(find.text('Se déconnecter ?'), findsOneWidget);
+    await tapText(tester, 'Annuler');
+    expect(auth.calls, isNot(contains('signOut')));
+
+    await tapText(tester, 'Se déconnecter');
+    await tapText(tester, 'Se déconnecter');
+    expect(auth.calls, contains('signOut'));
     expect(find.byType(LoginScreen), findsOneWidget);
-
-    // Protected pages are no longer reachable.
     expect(find.byType(ProfileScreen), findsNothing);
   });
 }

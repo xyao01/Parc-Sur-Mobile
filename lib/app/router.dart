@@ -22,6 +22,7 @@ import '../features/missions/presentation/mission_in_progress_screen.dart';
 import '../features/missions/presentation/new_request_notice_screen.dart';
 import '../features/missions/presentation/planning_screen.dart';
 import '../features/missions/presentation/request_response_screen.dart';
+import '../features/profile/presentation/change_password_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/requests/presentation/my_requests_screen.dart';
 import '../features/requests/presentation/request_decision_screen.dart';
@@ -122,6 +123,7 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
       ),
       GoRoute(path: Routes.myRequests, builder: (_, _) => const MyRequestsScreen()),
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(path: Routes.changePassword, builder: (_, _) => const ChangePasswordScreen()),
       GoRoute(path: Routes.maintenance, builder: (_, s) => MaintenanceScreen(feature: s.uri.queryParameters['vue'])),
     ],
   );

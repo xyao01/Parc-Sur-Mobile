@@ -39,6 +39,10 @@ class SessionNotifier extends Notifier<MobileProfile?> {
     state = null;
     await ref.read(authServiceProvider).signOut(profile);
   }
+
+  /// Name changed in « Mes coordonnées ».
+  void rename(String firstName, String lastName) =>
+      state = state?.copyWith(firstName: firstName.trim(), lastName: lastName.trim());
 }
 
 /// Deep link the reset e-mail returns to (`AuthConfig.passwordResetRedirect`, or `.env`).

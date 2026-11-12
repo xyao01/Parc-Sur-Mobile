@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/app/app.dart';
 import 'package:parc_sur_mobile/core/app_role.dart';
 import 'package:parc_sur_mobile/core/clock.dart';
+import 'package:parc_sur_mobile/core/features.dart';
 import 'package:parc_sur_mobile/features/auth/application/session.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
@@ -11,10 +12,13 @@ import 'package:parc_sur_mobile/features/alerts/data/alerts_gateway.dart';
 import 'package:parc_sur_mobile/features/alerts/data/alerts_providers.dart';
 import 'package:parc_sur_mobile/features/missions/data/missions_gateway.dart';
 import 'package:parc_sur_mobile/features/missions/data/missions_providers.dart';
+import 'package:parc_sur_mobile/features/requests/data/requests_gateway.dart';
+import 'package:parc_sur_mobile/features/requests/data/requests_providers.dart';
 
 import 'fake_alerts_gateway.dart';
 import 'fake_auth_gateway.dart';
 import 'fake_missions_gateway.dart';
+import 'fake_requests_gateway.dart';
 
 /// Date of the prototype screens (Tuesday 3 November 2026, 06:00).
 final prototypeNow = DateTime(2026, 11, 3, 6);
@@ -36,6 +40,8 @@ Future<void> pumpApp(
   AuthGateway? gateway,
   MissionsGateway? missions,
   AlertsGateway? alerts,
+  RequestsGateway? requests,
+  Features features = const Features.all(),
   DateTime? now,
   List overrides = const [],
 }) async {
@@ -47,11 +53,15 @@ Future<void> pumpApp(
     ProviderScope(
       overrides: [
         clockProvider.overrideWithValue(() => now ?? prototypeNow),
+        featuresProvider.overrideWithValue(features),
         authGatewayProvider.overrideWithValue(gateway ?? FakeAuthGateway()),
         missionsGatewayProvider.overrideWithValue(
           missions ?? FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow)),
         ),
         alertsGatewayProvider.overrideWithValue(alerts ?? FakeAlertsGateway()),
+        requestsGatewayProvider.overrideWithValue(
+          requests ?? FakeRequestsGateway(rows: prototypeRequestRows(prototypeNow)),
+        ),
         initialProfileProvider.overrideWithValue(signedIn ? profile : null),
         ...overrides,
       ],

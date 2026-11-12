@@ -22,7 +22,16 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 | Chauffeur · 10 · Clôture de la demande | `/missions/:id/cloture` | Mob-C10 | `closure_screen.dart` |
 | Chauffeur · Planning | `/planning` | Mob-C11 (maquette proposée puis validée) | `planning_screen.dart` |
 | Alertes (chauffeur et demandeur) | `/alertes` | Mob-C12 (maquette proposée puis validée) | `lib/features/alerts/presentation/alerts_screen.dart` |
-| Nouvelle demande (demandeur) | `/demandes/nouvelle` | Mobile · Nouvelle demande | `lib/features/requests/presentation/new_request_screen.dart` |
+| Demandeur · 1 · Accueil | `/demandes` | Mob-D01 | `lib/features/requests/presentation/requester_home_screen.dart` |
+| Demandeur · 2 · Formulaire (création et modification) | `/demandes/nouvelle`, `/demandes/:id/modifier` | Mob-D02 (remplace « Mobile · Nouvelle demande ») | `request_form_screen.dart` |
+| Demandeur · 3 · Récapitulatif | `…/recapitulatif` | Mob-D03 | `request_summary_screen.dart` |
+| Demandeur · 4 · Demande envoyée | `/demandes/:id/envoyee` | Mob-D04 | `request_sent_screen.dart` |
+| Demandeur · 5 · Mes demandes | `/mes-demandes` | Mob-D05 | `my_requests_screen.dart` |
+| Demandeur · 6 · Détail et annulation | `/demandes/:id` | Mob-D06 | `request_detail_screen.dart` |
+| Demandeur · 7 · Décision | `/demandes/:id/decision` | Mob-D07 | `request_decision_screen.dart` |
+| Demandeur · 8 · Suivi de la mission | `/demandes/:id/suivi` | Mob-D08 | `request_tracking_screen.dart` |
+| Demandeur · 9 · Fin de mission | `/demandes/:id/fin` | Mob-D09 | `request_end_screen.dart` |
+| Demandeur · 10 · Évaluation | `/demandes/:id/evaluation` | Mob-D10 | `request_rating_screen.dart` |
 | Profil et déconnexion | `/profil` | **non maquetté** : composé de composants existants | `lib/features/profile/presentation/profile_screen.dart` |
 | Feuille basse (modale < 600 px) | composant | Modale sous 600 px | `lib/core/widgets/parc_bottom_sheet.dart` |
 
@@ -54,6 +63,11 @@ flutter test
 | Réponse à une demande (C02-C04), disponibilité (C01), incident (C07), départ bloqué (C06) | **aucun appel : pas d'équivalent en base**. L'application affiche « Cette action n'est pas encore disponible sur le serveur » ; aucune demande « à répondre » n'apparaît | — |
 | Alertes du chauffeur | `rpc/mes_notifications_chauffeur`, `rpc/marquer_notifications_chauffeur_lues` (migration `20261112110000_notifications_chauffeur_mobile.sql` du dépôt backend) | chauffeur |
 | Alertes du demandeur | table `notification` : lecture et `lue_le` (RLS : alertes du compte web connecté) | connecté |
+| Demandes du demandeur (D01, D05-D09) | `demande_vue` filtrée sur `demandeur_id = utilisateur_courant()` (un gestionnaire voit sinon toutes les demandes) | Demandes › Saisie › consulter |
+| Nouvelle demande (D03) | insertion dans `demande_vehicule` (contrôles du déclencheur `controler_demande`) | Demandes › Saisie › ajouter |
+| Modification (D02-D03) | mise à jour de `demande_vehicule`, demande en attente uniquement (RLS) | Demandes › Saisie › modifier |
+| Annulation (D06) | `rpc/annuler_demande` | Demandes › Saisie › modifier |
+| Signaler un problème (D08), évaluation (D10) | **aucun appel : pas d'équivalent en base** ; l'application affiche « pas encore disponible » | — |
 | Déconnexion | Supabase Auth `signOut` | — |
 
 Politique de mot de passe identique au web : 8 caractères minimum, dont une majuscule et un chiffre.
@@ -86,7 +100,10 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 | Dommage signalé (C09) | envoyé dans `p_observations` (« Dommage constaté · zone · description »), avant les observations de C10 | `mission_drafts.dart` |
 | Motifs de refus, natures de problème, types d'incident, zones de dommage | listes de la maquette | `mission_flow_config.dart` |
 | Message des actions sans backend | « Cette action n'est pas encore disponible sur le serveur. Prévenez votre gestionnaire de parc. » (hors maquette) | `mission_flow_config.dart` (`unavailableMessage`) |
-| Nombre minimal / maximal de passagers | 1 / sans limite | `lib/features/requests/domain/request_config.dart` |
+| Nombre minimal / maximal de passagers | 1 / 50 (comme la base et le web) | `lib/features/requests/domain/request_config.dart` |
+| Motif d'annulation (D06, la maquette n'en demande pas ; `annuler_demande` l'exige) | « Annulée par le demandeur depuis l'application mobile. » | `RequestConfig.cancelReason` |
+| États affichés d'une demande | En attente, Validée (avant le départ), En cours (entre départ et retour prévus), Terminée (retour passé, règle du web), Refusée, Annulée | `vehicle_request.dart` (`stateAt`) |
+| Types de problème (D08), critères d'évaluation (D10) | listes de la maquette | `RequestConfig` |
 
 ## Écarts avec la maquette imposés par les données
 
@@ -103,13 +120,13 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 
 ## Non encore branché
 
-- « Envoyer la demande » (demandeur) vers le serveur.
 - Côté base : réponse du chauffeur à une demande, disponibilité, incidents, blocage du départ (voir « Backend Supabase utilisé »).
 - Reprise de session au redémarrage : il faut se reconnecter à chaque lancement.
 - Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo (boutons affichés, inactifs), appel du demandeur (bouton affiché, inactif).
 - Écrans « Mot de passe oublié » et « Réinitialisation » : pas de maquette mobile ; textes repris du web, composés uniquement de composants existants. À faire valider dans Claude Design.
-- Écrans non maquettés : onglet Accueil du demandeur ; « Saisir un plein ».
+- Écrans non maquettés : « Saisir un plein ».
+- Parcours demandeur, écarts imposés par les données : pas de ville de départ (destination seule) ; pas de direction du demandeur (D01) ; pas de lieu de prise en charge ni de téléphone du chauffeur (D07, bouton d'appel inactif) ; heures réelles de départ et d'arrivée, distance et dommages non lisibles par le demandeur (D08, D09 : horaires prévus) ; « Terminée » = retour prévu passé (la date de clôture n'est pas dans `demande_vue`). Le sélecteur « Validée / Refusée » de D07 n'existe que dans la maquette : l'application affiche la décision réelle. Avant le départ, D08 affiche « Départ … » à la place de « Mission en cours ».
 - Alertes : toucher une alerte la marque comme lue mais n'ouvre pas d'écran. Les liens enregistrés visent l'application web (`/mes-demandes`, `/demandes`, `/vehicules/…`) et n'ont pas encore d'équivalent mobile. Les 50 alertes les plus récentes sont chargées par compte.
 - Planning : seules les missions renvoyées par `mes_missions_chauffeur()` apparaissent (départ dans les 30 jours, non clôturées) ; ni historique ni absences.
 - États non maquettés : chargement et erreur des missions, « Aucune mission aujourd'hui », mission introuvable, interrupteur désactivé (gris provisoire `#93A3B8`), kilométrage inférieur au relevé précédent ou au départ (messages rouges provisoires).

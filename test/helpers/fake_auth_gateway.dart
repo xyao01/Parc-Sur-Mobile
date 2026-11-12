@@ -11,6 +11,7 @@ class FakeAuthGateway implements AuthGateway {
     this.provisionalPassword = false,
     this.updatePasswordError,
     this.resetError,
+    this.profileError,
     this.profile = const {'prenom': 'Yao', 'nom': 'Kouadio', 'demandeur': false, 'chauffeur': true},
   });
 
@@ -48,7 +49,20 @@ class FakeAuthGateway implements AuthGateway {
   @override
   Future<Map<String, dynamic>> mobileProfile() async {
     calls.add('mobileProfile');
+    if (profileError != null) throw AuthGatewayException(profileError!);
     return profile;
+  }
+
+  /// Error of `profil_mobile()` (e.g. network).
+  AuthGatewayError? profileError;
+
+  /// Session kept by Supabase from a previous launch.
+  SignInResult? storedAccount;
+
+  @override
+  Future<SignInResult?> currentAccount() async {
+    calls.add('currentAccount');
+    return storedAccount;
   }
 
   @override

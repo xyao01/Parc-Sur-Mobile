@@ -47,6 +47,28 @@ class AuthService {
     });
   }
 
+  /// App start: reopens the session Supabase kept, without counting a new sign-in.
+  /// `null` (sign-in screen) when there is none, when the account lost its mobile roles
+  /// (then signed out), or when the server cannot be reached (session kept for the next launch).
+  Future<MobileProfile?> restore() async {
+    final account = await _gateway.currentAccount();
+    if (account == null) return null;
+    try {
+      final profile = MobileProfile.fromJson(
+        await _gateway.mobileProfile(),
+        email: account.email,
+        mustChangePassword: account.provisionalPassword,
+      );
+      if (profile.roles.isEmpty) {
+        await signOut(null);
+        return null;
+      }
+      return profile;
+    } on AuthGatewayException {
+      return null;
+    }
+  }
+
   /// « Mot de passe oublié » (web `demanderReinitialisation`): unknown accounts get the
   /// same answer as a successful send; only the send limit and the network are reported.
   Future<void> requestPasswordReset(String rawEmail, {required String redirectTo}) async {

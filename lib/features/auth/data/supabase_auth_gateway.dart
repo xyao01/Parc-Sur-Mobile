@@ -18,6 +18,16 @@ class SupabaseAuthGateway implements AuthGateway {
   static DateTime? _parseDate(Object? value) => value is String ? DateTime.parse(value) : null;
 
   @override
+  Future<SignInResult?> currentAccount() async {
+    final user = _client.auth.currentSession?.user;
+    if (user == null) return null;
+    return SignInResult(
+      email: user.email ?? '',
+      provisionalPassword: user.userMetadata?[metaProvisionalPassword] == true,
+    );
+  }
+
+  @override
   Future<DateTime?> lockedUntil(String email) => _guard(() async {
         return _parseDate(await _client.rpc('blocage_connexion', params: {'p_email': email}));
       });

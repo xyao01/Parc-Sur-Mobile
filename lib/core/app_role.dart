@@ -25,6 +25,6 @@ String homeRouteFor(Set<AppRole> roles) {
   final role = roles.contains(AuthConfig.preferredRole) ? AuthConfig.preferredRole : roles.first;
   return switch (role) {
     AppRole.chauffeur => '/missions',
-    AppRole.demandeur => '/demandes/nouvelle',
+    AppRole.demandeur => '/demandes',
   };
 }

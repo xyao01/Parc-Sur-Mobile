@@ -37,6 +37,22 @@ abstract final class FrenchDates {
     return capitalize ? _cap(s) : s;
   }
 
+  /// `Jeu. 5 → sam. 7 nov.`, `Ven. 30 oct. → lun. 2 nov.`, `Mar. 3 nov.` (same day)
+  static String dayRange(DateTime a, DateTime b) {
+    if (sameDay(a, b)) return shortDay(a);
+    final start = a.month == b.month && a.year == b.year
+        ? '${_cap(weekdayShort(a))} ${a.day}'
+        : shortDay(a);
+    return '$start → ${shortDay(b, capitalize: false)}';
+  }
+
+  /// `Aujourd'hui à 08:05`, `Hier à 17:40`, `Le 30 oct. à 09:00`
+  static String atLabel(DateTime d, DateTime now) {
+    final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    final day = days == 0 ? "Aujourd'hui" : (days == 1 ? 'Hier' : 'Le ${d.day} ${_monthsShort[d.month - 1]}');
+    return '$day à ${time(d)}';
+  }
+
   /// `30 oct.`
   static String dayMonthShort(DateTime d) => '${d.day} ${_monthsShort[d.month - 1]}';
 

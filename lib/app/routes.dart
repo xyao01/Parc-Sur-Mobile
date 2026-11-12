@@ -21,9 +21,24 @@ abstract final class Routes {
   static String endCheck(String id) => '/missions/$id/controle-fin'; // C09
   static String closure(String id) => '/missions/$id/cloture'; // C10
 
+  /// « Page en maintenance » (`?vue=` name of the view).
+  static const maintenance = '/maintenance';
+
   static const planning = '/planning'; // Mob-C11 Planning chauffeur
   static const alerts = '/alertes'; // Mob-C12 Alertes (chauffeur et demandeur)
 
-  static const newRequest = '/demandes/nouvelle';
+  /// Requester journey Mob-D01…D10.
+  static const requesterHome = '/demandes'; // D01
+  static const newRequest = '/demandes/nouvelle'; // D02
+  static const newRequestSummary = '/demandes/nouvelle/recapitulatif'; // D03
+  static String editRequest(String id) => '/demandes/$id/modifier'; // D02 (edit)
+  static String editRequestSummary(String id) => '/demandes/$id/modifier/recapitulatif'; // D03 (edit)
+  static String requestSent(String id) => '/demandes/$id/envoyee'; // D04
+  static const myRequests = '/mes-demandes'; // D05
+  static String requestDetail(String id) => '/demandes/$id'; // D06
+  static String requestDecision(String id) => '/demandes/$id/decision'; // D07
+  static String requestTracking(String id) => '/demandes/$id/suivi'; // D08
+  static String requestEnd(String id) => '/demandes/$id/fin'; // D09
+  static String requestRating(String id) => '/demandes/$id/evaluation'; // D10
   static const profile = '/profil';
 }

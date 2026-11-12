@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../core/widgets/maintenance_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_role.dart';
@@ -20,10 +23,22 @@ import '../features/missions/presentation/new_request_notice_screen.dart';
 import '../features/missions/presentation/planning_screen.dart';
 import '../features/missions/presentation/request_response_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
-import '../features/requests/presentation/new_request_screen.dart';
+import '../features/requests/presentation/my_requests_screen.dart';
+import '../features/requests/presentation/request_decision_screen.dart';
+import '../features/requests/presentation/request_detail_screen.dart';
+import '../features/requests/presentation/request_end_screen.dart';
+import '../features/requests/presentation/request_form_screen.dart';
+import '../features/requests/presentation/request_rating_screen.dart';
+import '../features/requests/presentation/request_sent_screen.dart';
+import '../features/requests/presentation/request_summary_screen.dart';
+import '../features/requests/presentation/request_tracking_screen.dart';
+import '../features/requests/presentation/requester_home_screen.dart';
 import 'routes.dart';
 
 const loginRoute = Routes.login;
+
+Widget _answerGate(Widget screen) =>
+    FeatureGate(enabled: (f) => f.driverRequestAnswer, feature: 'Réponse aux demandes', child: screen);
 
 /// Access rules:
 /// - signed out → only sign-in, « mot de passe oublié » and the reset page;
@@ -52,14 +67,21 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
         path: Routes.missions,
         builder: (_, _) => const DriverHomeScreen(),
         routes: [
-          GoRoute(path: 'demandes/:id', builder: (_, s) => NewRequestNoticeScreen(missionId: s.pathParameters['id']!)),
-          GoRoute(path: 'demandes/:id/details', builder: (_, s) => MissionDetailsScreen(missionId: s.pathParameters['id']!)),
+          // C02-C04: no answer step in the database yet → « Page en maintenance ».
+          GoRoute(
+            path: 'demandes/:id',
+            builder: (_, s) => _answerGate(NewRequestNoticeScreen(missionId: s.pathParameters['id']!)),
+          ),
+          GoRoute(
+            path: 'demandes/:id/details',
+            builder: (_, s) => _answerGate(MissionDetailsScreen(missionId: s.pathParameters['id']!)),
+          ),
           GoRoute(
             path: 'demandes/:id/reponse',
-            builder: (_, s) => RequestResponseScreen(
+            builder: (_, s) => _answerGate(RequestResponseScreen(
               missionId: s.pathParameters['id']!,
               accept: s.uri.queryParameters['choix'] != 'refuser',
-            ),
+            )),
           ),
           GoRoute(path: ':id/preparation', builder: (_, s) => DeparturePreparationScreen(missionId: s.pathParameters['id']!)),
           GoRoute(path: ':id/validation', builder: (_, s) => DepartureValidationScreen(missionId: s.pathParameters['id']!)),
@@ -71,8 +93,36 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
       ),
       GoRoute(path: Routes.planning, builder: (_, _) => const PlanningScreen()),
       GoRoute(path: Routes.alerts, builder: (_, _) => const AlertsScreen()),
-      GoRoute(path: Routes.newRequest, builder: (_, _) => const NewRequestScreen()),
+      // Requester journey Mob-D01…D10.
+      GoRoute(
+        path: Routes.requesterHome,
+        builder: (_, _) => const RequesterHomeScreen(),
+        routes: [
+          GoRoute(path: 'nouvelle', builder: (_, _) => const RequestFormScreen()),
+          GoRoute(path: 'nouvelle/recapitulatif', builder: (_, _) => const RequestSummaryScreen()),
+          GoRoute(path: ':id', builder: (_, s) => RequestDetailScreen(requestId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/modifier', builder: (_, s) => RequestFormScreen(editId: s.pathParameters['id']!)),
+          GoRoute(
+            path: ':id/modifier/recapitulatif',
+            builder: (_, s) => RequestSummaryScreen(editId: s.pathParameters['id']!),
+          ),
+          GoRoute(path: ':id/envoyee', builder: (_, s) => RequestSentScreen(requestId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/decision', builder: (_, s) => RequestDecisionScreen(requestId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/suivi', builder: (_, s) => RequestTrackingScreen(requestId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/fin', builder: (_, s) => RequestEndScreen(requestId: s.pathParameters['id']!)),
+          GoRoute(
+            path: ':id/evaluation',
+            builder: (_, s) => FeatureGate(
+              enabled: (f) => f.missionRating,
+              feature: 'Évaluation de la mission',
+              child: RequestRatingScreen(requestId: s.pathParameters['id']!),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(path: Routes.myRequests, builder: (_, _) => const MyRequestsScreen()),
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(path: Routes.maintenance, builder: (_, s) => MaintenanceScreen(feature: s.uri.queryParameters['vue'])),
     ],
   );
 }

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/presentation/login_screen.dart';
 import 'package:parc_sur_mobile/features/missions/presentation/driver_home_screen.dart';
-import 'package:parc_sur_mobile/features/requests/presentation/new_request_screen.dart';
+import 'package:parc_sur_mobile/features/requests/presentation/requester_home_screen.dart';
 
 import '../../helpers/fake_auth_gateway.dart';
 import '../../helpers/pump_app.dart';
@@ -61,7 +61,7 @@ void main() {
     await pumpApp(tester, location: '/connexion', signedIn: false, gateway: gateway);
 
     await fillAndSubmit(tester);
-    expect(find.byType(NewRequestScreen), findsOneWidget);
+    expect(find.byType(RequesterHomeScreen), findsOneWidget);
   });
 
   testWidgets('shows the web prototype message when the account gets locked', (tester) async {

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/features.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -804,8 +808,13 @@ class ResultView extends StatelessWidget {
   }
 }
 
+/// Opens « Page en maintenance » while the view behind a button has no backend ([Features]).
+void _maintenanceUnless(BuildContext context, bool Function(Features) enabled, String feature) {
+  if (!enabled(ProviderScope.containerOf(context).read(featuresProvider))) openMaintenance(context, feature);
+}
+
 /// Grey photo placeholders and the dashed « Ajouter une photo » button.
-/// Camera capture is not wired yet (see README): the button does nothing.
+/// Camera capture is not wired yet (see README): « Page en maintenance ».
 class PhotoStrip extends StatelessWidget {
   const PhotoStrip({super.key, this.labels = const [], this.addLabel = 'Ajouter une photo'});
 
@@ -836,7 +845,7 @@ class PhotoStrip extends StatelessWidget {
               color: ParcColors.surface,
               borderRadius: BorderRadius.circular(10),
               child: InkWell(
-                onTap: () {},
+                onTap: () => _maintenanceUnless(context, (f) => f.photos, 'Photos'),
                 borderRadius: BorderRadius.circular(10),
                 child: const SizedBox(
                   width: 72,
@@ -896,7 +905,7 @@ class CallButton extends StatelessWidget {
         color: ParcColors.primarySoft,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          onTap: () {},
+          onTap: () => _maintenanceUnless(context, (f) => f.phoneCalls, 'Appel téléphonique'),
           borderRadius: BorderRadius.circular(12),
           child: const SizedBox(
             width: 44,

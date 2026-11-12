@@ -29,6 +29,11 @@ abstract final class ParcIcons {
   static const mapPin = '$_o stroke-width="2.5" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>';
   static const blocked = '$_o stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
   static const cross = '$_o stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  static const wrench = '$_o stroke-width="2" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>';
+
+  /// Rating stars of Mob-D10 (fixed colours of the prototype).
+  static const starOn = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F08A24" stroke="#B45309" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+  static const starOff = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#93A3B8" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
   static const checkBold = '$_o stroke-width="3" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 }
 

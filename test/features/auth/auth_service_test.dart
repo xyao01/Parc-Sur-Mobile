@@ -134,7 +134,7 @@ void main() {
 
   test('home route prefers the configured role when the user has both', () {
     expect(homeRouteFor({AppRole.chauffeur, AppRole.demandeur}), '/missions');
-    expect(homeRouteFor({AppRole.demandeur}), '/demandes/nouvelle');
+    expect(homeRouteFor({AppRole.demandeur}), '/demandes');
     expect(homeRouteFor({AppRole.chauffeur}), '/missions');
   });
 }

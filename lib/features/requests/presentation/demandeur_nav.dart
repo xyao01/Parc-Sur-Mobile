@@ -5,7 +5,7 @@ import '../../../app/routes.dart';
 import '../../../core/widgets/parc_bottom_nav.dart';
 import '../../../core/widgets/parc_icon.dart';
 
-/// Demandeur tab bar. Accueil and Alertes are not designed yet.
+/// Demandeur tab bar: Accueil (D01), Mes demandes (D05), Alertes (C12), Profil.
 class DemandeurBottomNav extends StatelessWidget {
   const DemandeurBottomNav({super.key, required this.currentIndex});
 
@@ -16,8 +16,8 @@ class DemandeurBottomNav extends StatelessWidget {
     return ParcBottomNav(
       currentIndex: currentIndex,
       items: [
-        const ParcNavItem(label: 'Accueil', icon: ParcIcons.home),
-        ParcNavItem(label: 'Mes demandes', icon: ParcIcons.checkSquare, onTap: () => context.go(Routes.newRequest)),
+        ParcNavItem(label: 'Accueil', icon: ParcIcons.home, onTap: () => context.go(Routes.requesterHome)),
+        ParcNavItem(label: 'Mes demandes', icon: ParcIcons.checkSquare, onTap: () => context.go(Routes.myRequests)),
         ParcNavItem(label: 'Alertes', icon: ParcIcons.bell, onTap: () => context.go(Routes.alerts)),
         ParcNavItem(label: 'Profil', icon: ParcIcons.user, onTap: () => context.go(Routes.profile)),
       ],

@@ -1,6 +1,9 @@
 /// Thin port over the backend calls used by sign-in, so the flows in
 /// `AuthService` can be tested without Supabase.
 abstract interface class AuthGateway {
+  /// Account of the session Supabase kept from a previous launch, or `null`.
+  Future<SignInResult?> currentAccount();
+
   /// `blocage_connexion(email)`: end of the current lock, or `null`.
   Future<DateTime?> lockedUntil(String email);
 

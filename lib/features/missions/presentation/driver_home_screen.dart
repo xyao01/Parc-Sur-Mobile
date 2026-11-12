@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/clock.dart';
+import '../../../core/features.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -203,12 +205,19 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// « Je suis disponible »: shown as in the prototype, not editable (no backend yet, see README).
-class _AvailabilityRow extends StatelessWidget {
+/// « Je suis disponible »: shown as in the prototype; no backend yet, so a tap opens « Page en maintenance ».
+class _AvailabilityRow extends ConsumerWidget {
   const _AvailabilityRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: ref.watch(featuresProvider).driverAvailability ? null : () => openMaintenance(context, 'Disponibilité'),
+      child: _availability(),
+    );
+  }
+
+  Widget _availability() {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
       decoration: BoxDecoration(color: ParcColors.headerChip, borderRadius: BorderRadius.circular(12)),

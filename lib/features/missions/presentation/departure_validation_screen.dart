@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/clock.dart';
+import '../../../core/features.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -184,10 +186,12 @@ class _ValidationState extends ConsumerState<_Validation> {
             : JourneyActionButton(label: 'Cochez la confirmation pour continuer', ready: false, onPressed: () {}),
         DangerSoftButton(
           label: 'Un problème : bloquer le départ',
-          onPressed: () => setState(() {
-            _view = _View.block;
-            _error = null;
-          }),
+          onPressed: () => ref.read(featuresProvider).blockDeparture
+              ? setState(() {
+                  _view = _View.block;
+                  _error = null;
+                })
+              : openMaintenance(context, 'Bloquer le départ'),
         ),
       ],
     );

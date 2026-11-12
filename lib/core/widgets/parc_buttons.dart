@@ -14,6 +14,7 @@ class ParcPrimaryButton extends StatelessWidget {
     this.fontSize = 16,
     this.weight = 800,
     this.trailing,
+    this.leading,
   });
 
   final String label;
@@ -23,6 +24,7 @@ class ParcPrimaryButton extends StatelessWidget {
   final double fontSize;
   final int weight;
   final Widget? trailing;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,7 @@ class ParcPrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (leading != null) ...[leading!, const SizedBox(width: 8)],
             Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
           ],

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/clock.dart';
+import '../../../core/features.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -82,7 +84,12 @@ class MissionInProgressScreen extends ConsumerWidget {
                   label: 'Je suis arrivé à destination',
                   onPressed: () => context.push(Routes.arrival(m.id)),
                 ),
-                DangerSoftButton(label: 'Signaler un incident', onPressed: () => _openIncidentSheet(context, m)),
+                DangerSoftButton(
+                  label: 'Signaler un incident',
+                  onPressed: () => ref.read(featuresProvider).driverIncident
+                      ? _openIncidentSheet(context, m)
+                      : openMaintenance(context, 'Signaler un incident'),
+                ),
               ]),
             ],
           ),

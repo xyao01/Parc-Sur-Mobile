@@ -11,6 +11,7 @@ import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parcsur_logo.dart';
+import '../../alerts/data/alerts_providers.dart';
 import '../../auth/application/session.dart';
 import '../../auth/domain/mobile_profile.dart';
 import '../data/missions_providers.dart';
@@ -75,7 +76,8 @@ class DriverHomeScreen extends ConsumerWidget {
       backgroundColor: ParcColors.background,
       body: Column(
         children: [
-          if (driver != null) _Header(driver: driver, now: now, pending: pending),
+          if (driver != null)
+            _Header(driver: driver, now: now, pending: pending, unreadAlerts: ref.watch(unreadAlertsCountProvider)),
           Expanded(
             child: RefreshIndicator(
               color: ParcColors.primary,
@@ -92,25 +94,31 @@ class DriverHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: ChauffeurBottomNav(
-        currentIndex: 0,
-        onAlerts: pending.isEmpty ? null : () => context.push(Routes.requestNotice(pending.first.id)),
-      ),
+      bottomNavigationBar: const ChauffeurBottomNav(currentIndex: 0),
     );
   }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.driver, required this.now, required this.pending});
+  const _Header({required this.driver, required this.now, required this.pending, required this.unreadAlerts});
 
   final MobileProfile driver;
   final DateTime now;
   final List<Mission> pending;
+  final int unreadAlerts;
+
+  /// Bell: a request awaiting an answer opens it (C02); otherwise the alerts (C12).
+  String get _bellLabel {
+    final p = pending.length;
+    if (p > 0) return 'Notifications : $p nouvelle${p > 1 ? 's' : ''} demande${p > 1 ? 's' : ''}';
+    if (unreadAlerts > 0) return 'Notifications : $unreadAlerts alerte${unreadAlerts > 1 ? 's' : ''} non lue${unreadAlerts > 1 ? 's' : ''}';
+    return 'Notifications';
+  }
 
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    final count = pending.length;
+    final count = pending.length + unreadAlerts;
     return Container(
       width: double.infinity,
       color: ParcColors.navy,
@@ -126,13 +134,15 @@ class _Header extends StatelessWidget {
               const Spacer(),
               Semantics(
                 button: true,
-                label: count == 0 ? 'Notifications' : 'Notifications : $count nouvelle${count > 1 ? 's' : ''} demande${count > 1 ? 's' : ''}',
+                label: _bellLabel,
                 excludeSemantics: true,
                 child: Material(
                   color: ParcColors.headerChip,
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
-                    onTap: count == 0 ? null : () => context.push(Routes.requestNotice(pending.first.id)),
+                    onTap: () => pending.isNotEmpty
+                        ? context.push(Routes.requestNotice(pending.first.id))
+                        : context.go(Routes.alerts),
                     borderRadius: BorderRadius.circular(12),
                     child: SizedBox(
                       width: 44,

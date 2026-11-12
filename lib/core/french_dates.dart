@@ -37,6 +37,9 @@ abstract final class FrenchDates {
     return capitalize ? _cap(s) : s;
   }
 
+  /// `30 oct.`
+  static String dayMonthShort(DateTime d) => '${d.day} ${_monthsShort[d.month - 1]}';
+
   /// `Novembre 2026`
   static String monthYear(DateTime d) => '${_cap(_months[d.month - 1])} ${d.year}';
 

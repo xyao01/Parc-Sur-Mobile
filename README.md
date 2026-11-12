@@ -21,6 +21,7 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 | Chauffeur · 9 · Contrôle de fin de mission | `/missions/:id/controle-fin` | Mob-C09 | `end_check_screen.dart` |
 | Chauffeur · 10 · Clôture de la demande | `/missions/:id/cloture` | Mob-C10 | `closure_screen.dart` |
 | Chauffeur · Planning | `/planning` | Mob-C11 (maquette proposée puis validée) | `planning_screen.dart` |
+| Alertes (chauffeur et demandeur) | `/alertes` | Mob-C12 (maquette proposée puis validée) | `lib/features/alerts/presentation/alerts_screen.dart` |
 | Nouvelle demande (demandeur) | `/demandes/nouvelle` | Mobile · Nouvelle demande | `lib/features/requests/presentation/new_request_screen.dart` |
 | Profil et déconnexion | `/profil` | **non maquetté** : composé de composants existants | `lib/features/profile/presentation/profile_screen.dart` |
 | Feuille basse (modale < 600 px) | composant | Modale sous 600 px | `lib/core/widgets/parc_bottom_sheet.dart` |
@@ -51,6 +52,8 @@ flutter test
 | Validation du départ (C06) | `rpc/enregistrer_controle`, type `depart` (id client : un renvoi n'est pas compté deux fois) | chauffeur |
 | Clôture (C10) : arrivée, contrôle de fin, observations | `rpc/enregistrer_controle`, type `retour`, saisi à l'heure d'arrivée ; la demande est ensuite clôturée par le gestionnaire (`cloturer_mission` n'est pas ouvert aux chauffeurs) | chauffeur |
 | Réponse à une demande (C02-C04), disponibilité (C01), incident (C07), départ bloqué (C06) | **aucun appel : pas d'équivalent en base**. L'application affiche « Cette action n'est pas encore disponible sur le serveur » ; aucune demande « à répondre » n'apparaît | — |
+| Alertes du chauffeur | `rpc/mes_notifications_chauffeur`, `rpc/marquer_notifications_chauffeur_lues` (migration `20261112110000_notifications_chauffeur_mobile.sql` du dépôt backend) | chauffeur |
+| Alertes du demandeur | table `notification` : lecture et `lue_le` (RLS : alertes du compte web connecté) | connecté |
 | Déconnexion | Supabase Auth `signOut` | — |
 
 Politique de mot de passe identique au web : 8 caractères minimum, dont une majuscule et un chiffre.
@@ -106,6 +109,7 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 - Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo (boutons affichés, inactifs), appel du demandeur (bouton affiché, inactif).
 - Écrans « Mot de passe oublié » et « Réinitialisation » : pas de maquette mobile ; textes repris du web, composés uniquement de composants existants. À faire valider dans Claude Design.
-- Écrans non maquettés : onglets Accueil et Alertes du demandeur ; « Saisir un plein ».
+- Écrans non maquettés : onglet Accueil du demandeur ; « Saisir un plein ».
+- Alertes : toucher une alerte la marque comme lue mais n'ouvre pas d'écran. Les liens enregistrés visent l'application web (`/mes-demandes`, `/demandes`, `/vehicules/…`) et n'ont pas encore d'équivalent mobile. Les 50 alertes les plus récentes sont chargées par compte.
 - Planning : seules les missions renvoyées par `mes_missions_chauffeur()` apparaissent (départ dans les 30 jours, non clôturées) ; ni historique ni absences.
 - États non maquettés : chargement et erreur des missions, « Aucune mission aujourd'hui », mission introuvable, interrupteur désactivé (gris provisoire `#93A3B8`), kilométrage inférieur au relevé précédent ou au départ (messages rouges provisoires).

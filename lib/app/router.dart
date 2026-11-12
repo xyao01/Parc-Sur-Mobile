@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_role.dart';
+import '../features/alerts/presentation/alerts_screen.dart';
 import '../features/auth/application/session.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -69,6 +70,7 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
         ],
       ),
       GoRoute(path: Routes.planning, builder: (_, _) => const PlanningScreen()),
+      GoRoute(path: Routes.alerts, builder: (_, _) => const AlertsScreen()),
       GoRoute(path: Routes.newRequest, builder: (_, _) => const NewRequestScreen()),
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
     ],

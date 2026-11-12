@@ -22,6 +22,7 @@ abstract final class Routes {
   static String closure(String id) => '/missions/$id/cloture'; // C10
 
   static const planning = '/planning'; // Mob-C11 Planning chauffeur
+  static const alerts = '/alertes'; // Mob-C12 Alertes (chauffeur et demandeur)
 
   static const newRequest = '/demandes/nouvelle';
   static const profile = '/profil';

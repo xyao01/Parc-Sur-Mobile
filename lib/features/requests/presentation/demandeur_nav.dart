@@ -18,7 +18,7 @@ class DemandeurBottomNav extends StatelessWidget {
       items: [
         const ParcNavItem(label: 'Accueil', icon: ParcIcons.home),
         ParcNavItem(label: 'Mes demandes', icon: ParcIcons.checkSquare, onTap: () => context.go(Routes.newRequest)),
-        const ParcNavItem(label: 'Alertes', icon: ParcIcons.bell),
+        ParcNavItem(label: 'Alertes', icon: ParcIcons.bell, onTap: () => context.go(Routes.alerts)),
         ParcNavItem(label: 'Profil', icon: ParcIcons.user, onTap: () => context.go(Routes.profile)),
       ],
     );

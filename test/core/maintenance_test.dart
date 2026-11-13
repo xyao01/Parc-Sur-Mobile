@@ -70,6 +70,18 @@ void main() {
     expectMaintenance('Photos');
   });
 
+  testWidgets('expenses at closure (C10, l2-mis-02)', (tester) async {
+    await pumpApp(
+      tester,
+      location: '/missions/m-142/cloture',
+      now: duringMission,
+      features: production,
+      missions: FakeMissionsGateway(rows: inProgressRows(duringMission)),
+    );
+    await tapText(tester, 'Dépenses engagées (carburant, péage…)');
+    expectMaintenance('Dépenses de la mission');
+  });
+
   testWidgets('« Signaler un problème » (D08)', (tester) async {
     await pumpApp(tester, location: '/demandes/m-139/suivi', profile: requester, features: production);
     await tapText(tester, 'Signaler un problème');

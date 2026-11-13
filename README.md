@@ -34,6 +34,7 @@ Les écrans reproduisent les maquettes du canevas Claude Design « Gestion Parc 
 | Demandeur · 10 · Évaluation | `/demandes/:id/evaluation` | Mob-D10 | `request_rating_screen.dart` |
 | Profil (espace, coordonnées, mot de passe, déconnexion) | `/profil`, `/profil/mot-de-passe` | Mob-P01 (maquette proposée puis validée) | `lib/features/profile/presentation/profile_screen.dart` |
 | Page en maintenance (vues sans backend) | `/maintenance?vue=…` | Mob-X01 | `lib/core/widgets/maintenance_screen.dart` |
+| Agent · Relevé mensuel du véhicule affecté | `/mon-vehicule/:id/releve` | Mob-D11 (proposée, à valider) | `lib/features/vehicle/presentation/monthly_reading_screen.dart` |
 | Feuille basse (modale < 600 px) | composant | Modale sous 600 px | `lib/core/widgets/parc_bottom_sheet.dart` |
 
 ## Lancer
@@ -70,6 +71,7 @@ flutter test
 | Annulation (D06) | `rpc/annuler_demande` | Demandes › Saisie › modifier |
 | Signaler un problème (D08), évaluation (D10) | **aucun appel : pas d'équivalent en base** ; l'application affiche « pas encore disponible » | — |
 | Déconnexion | Supabase Auth `signOut` | — |
+| Relevé mensuel (agent, l2-km-02) | `rpc/mon_vehicule`, `rpc/saisir_releve_mensuel` (version avec `p_id_client` : un renvoi n'est pas compté deux fois) | connecté |
 | Reprise de session au lancement | session gardée par Supabase + `rpc/profil_mobile` (sans nouvelle « connexion réussie ») | authentifié |
 | Profil : coordonnées du demandeur | lecture de sa ligne `utilisateur` (RLS) ; enregistrement par `rpc/modifier_mon_compte` | connecté |
 | Profil : changer le mot de passe | Supabase Auth `updateUser` (même politique que la première connexion) | — |
@@ -122,16 +124,25 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 - Ajout hors maquette : sur l'accueil, une mission déjà partie propose « Reprendre la mission en cours » (C07).
 - « Mobile · Mes missions » (liste « À venir », « Saisir un plein ») et « Mobile · Contrôle de départ » sont remplacés par le parcours C01-C10 : les missions à venir ne sont plus listées (seulement comptées).
 
+## Saisie hors connexion (l2-mob-04)
+
+- Contrôles de départ et de retour, relevés mensuels : sans réseau, la saisie est gardée sur le téléphone (`shared_preferences`, conservée si l'application est fermée) avec son identifiant client, puis envoyée automatiquement au retour du réseau (au lancement et à chaque reconnexion). Le serveur ignore un second envoi du même identifiant.
+- Bandeau sous l'en-tête : « Hors connexion : la saisie sera envoyée dès le retour du réseau. », « N saisies en attente d'envoi. », ou saisie refusée par le serveur (message, bouton OK).
+- La dernière liste des missions et du véhicule affecté est gardée pour travailler sans réseau ; une saisie en attente est déjà prise en compte (mission « en cours », relevé du mois fait).
+- Sans réseau au lancement, la session est rouverte avec le dernier profil gardé sur le téléphone.
+
 ## Non encore branché
 
 - Côté base : réponse du chauffeur à une demande, disponibilité, incidents, blocage du départ (voir « Backend Supabase utilisé »).
 - Vues sans backend : elles ouvrent « Page en maintenance » tant que leur interrupteur est éteint dans `lib/core/features.dart` (réponse aux demandes, disponibilité, incident, blocage du départ, photos, appels, problème signalé par le demandeur, évaluation, informations du chauffeur dans le Profil).
 - Profil du chauffeur : téléphone et permis non lisibles (table `chauffeur` fermée aux chauffeurs) → « Page en maintenance ».
-- Détection hors connexion (`isOfflineProvider` vaut toujours `false`) et file d'envoi différé.
 - Empreinte digitale, prise de photo (boutons affichés, inactifs), appel du demandeur (bouton affiché, inactif).
 - Écrans « Mot de passe oublié » et « Réinitialisation » : pas de maquette mobile ; textes repris du web, composés uniquement de composants existants. À faire valider dans Claude Design.
 - Écrans non maquettés : « Saisir un plein ».
 - Parcours demandeur, écarts imposés par les données : pas de ville de départ (destination seule) ; pas de direction du demandeur (D01) ; pas de lieu de prise en charge ni de téléphone du chauffeur (D07, bouton d'appel inactif) ; heures réelles de départ et d'arrivée, distance et dommages non lisibles par le demandeur (D08, D09 : horaires prévus) ; « Terminée » = retour prévu passé (la date de clôture n'est pas dans `demande_vue`). Le sélecteur « Validée / Refusée » de D07 n'existe que dans la maquette : l'application affiche la décision réelle. Avant le départ, D08 affiche « Départ … » à la place de « Mission en cours ».
-- Alertes : toucher une alerte la marque comme lue mais n'ouvre pas d'écran. Les liens enregistrés visent l'application web (`/mes-demandes`, `/demandes`, `/vehicules/…`) et n'ont pas encore d'équivalent mobile. Les 50 alertes les plus récentes sont chargées par compte.
+- Alertes : une alerte de demande (`/mes-demandes?id=…`) ouvre la demande ; une alerte de mission du chauffeur ouvre le Planning ; les autres liens (véhicules, pages du gestionnaire) n'ont pas d'écran mobile : l'alerte est seulement marquée comme lue. Les 50 alertes les plus récentes sont chargées par compte.
+- Notifications push (l2-not-01) : non faites. Il faut un projet Firebase (Cloud Messaging), ses fichiers de configuration Android/iOS, et une fonction serveur qui envoie le push à chaque notification enregistrée.
+- Dépenses au contrôle de retour (l2-mis-02) : la table `depense` est réservée à la permission « Dépenses › Saisie », que les comptes chauffeur n'ont pas ; l'entrée « Dépenses engagées » de C10 ouvre « Page en maintenance ».
+- iOS : schéma d'URL du lien de réinitialisation déclaré (`Info.plist`) ; compilation et test à faire sur un Mac.
 - Planning : seules les missions renvoyées par `mes_missions_chauffeur()` apparaissent (départ dans les 30 jours, non clôturées) ; ni historique ni absences.
 - États non maquettés : chargement et erreur des missions, « Aucune mission aujourd'hui », mission introuvable, interrupteur désactivé (gris provisoire `#93A3B8`), kilométrage inférieur au relevé précédent ou au départ (messages rouges provisoires).

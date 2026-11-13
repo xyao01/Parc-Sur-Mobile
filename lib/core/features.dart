@@ -13,6 +13,7 @@ class Features {
     this.requesterProblem = false,
     this.missionRating = false,
     this.driverAccountDetails = false,
+    this.missionExpenses = false,
   });
 
   /// Every view enabled (tests of the screens themselves).
@@ -25,7 +26,8 @@ class Features {
         phoneCalls = true,
         requesterProblem = true,
         missionRating = true,
-        driverAccountDetails = true;
+        driverAccountDetails = true,
+        missionExpenses = true;
 
   /// Mob-C02…C04: answer to a request (no answer step in the database).
   final bool driverRequestAnswer;
@@ -53,6 +55,9 @@ class Features {
 
   /// Profile: driver's phone and licence (table chauffeur not readable by drivers).
   final bool driverAccountDetails;
+
+  /// Mob-C10 « Dépenses engagées » (l2-mis-02): table depense closed to drivers.
+  final bool missionExpenses;
 }
 
 final featuresProvider = Provider<Features>((ref) => const Features());

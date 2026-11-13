@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/clock.dart';
+import '../../../core/features.dart';
+import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -213,6 +215,29 @@ class _ClosureState extends ConsumerState<_Closure> {
                   fontSize: 15,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   hintText: "Remarques sur la mission, l'état de la route, le véhicule…",
+                ),
+                const SizedBox(height: 14),
+                // l2-mis-02 « dépenses engagées »: not in the prototype; no driver access to the expenses yet.
+                WhiteCard(
+                  radius: 14,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Semantics(
+                    button: true,
+                    child: InkWell(
+                      onTap: ref.watch(featuresProvider).missionExpenses
+                          ? () {}
+                          : () => openMaintenance(context, 'Dépenses de la mission'),
+                      child: SizedBox(
+                        height: 52,
+                        child: Row(
+                          children: [
+                            Expanded(child: Text('Dépenses engagées (carburant, péage…)', style: parcText(14, weight: 700))),
+                            const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.textMuted),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 ConfirmBox(

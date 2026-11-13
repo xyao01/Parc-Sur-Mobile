@@ -4,6 +4,9 @@ abstract interface class ProfileGateway {
   /// `null` for an account without web record (driver only).
   Future<Map<String, dynamic>?> myAccount(String email);
 
+  /// `ma_fiche_chauffeur()`: `telephone`, `permis` (categories), `finValidite` of the signed-in driver.
+  Future<Map<String, dynamic>?> myDriverRecord();
+
   /// `modifier_mon_compte(prenom, nom, phone, localisation)`.
   Future<void> updateMyAccount({
     required String firstName,

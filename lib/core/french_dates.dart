@@ -21,6 +21,9 @@ abstract final class FrenchDates {
   /// `30/10`
   static String dayMonth(DateTime d) => '${_pad2(d.day)}/${_pad2(d.month)}';
 
+  /// `12/03/2027`
+  static String date(DateTime d) => '${dayMonth(d)}/${d.year}';
+
   /// `mer.`
   static String weekdayShort(DateTime d) => _weekdaysShort[d.weekday - 1];
 

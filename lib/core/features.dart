@@ -12,7 +12,7 @@ class Features {
     this.phoneCalls = false,
     this.requesterProblem = false,
     this.missionRating = false,
-    this.driverAccountDetails = false,
+    this.driverRecordReport = false,
     this.missionExpenses = false,
   });
 
@@ -26,7 +26,7 @@ class Features {
         phoneCalls = true,
         requesterProblem = true,
         missionRating = true,
-        driverAccountDetails = true,
+        driverRecordReport = true,
         missionExpenses = true;
 
   /// Mob-C02…C04: answer to a request (no answer step in the database).
@@ -53,8 +53,8 @@ class Features {
   /// Mob-D10 evaluation.
   final bool missionRating;
 
-  /// Profile: driver's phone and licence (table chauffeur not readable by drivers).
-  final bool driverAccountDetails;
+  /// Profile: driver's « Signaler une erreur à mon gestionnaire » (no reporting call yet).
+  final bool driverRecordReport;
 
   /// Mob-C10 « Dépenses engagées » (l2-mis-02): table depense closed to drivers.
   final bool missionExpenses;

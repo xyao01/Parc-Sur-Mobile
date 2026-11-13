@@ -33,6 +33,34 @@ final accountDetailsProvider = FutureProvider.autoDispose<AccountDetails?>((ref)
   return row == null ? null : AccountDetails.fromJson(row);
 });
 
+/// « Mes informations » of a driver (`ma_fiche_chauffeur`), read only.
+class DriverDetails {
+  const DriverDetails({this.phone, this.licences = const [], this.validUntil});
+
+  factory DriverDetails.fromJson(Map<String, dynamic> j) {
+    final phone = (j['telephone'] as String?)?.trim();
+    final until = j['finValidite'] as String?;
+    return DriverDetails(
+      phone: phone == null || phone.isEmpty ? null : phone,
+      licences: [for (final c in (j['permis'] as List?) ?? const []) '$c'],
+      validUntil: until == null ? null : DateTime.tryParse(until),
+    );
+  }
+
+  final String? phone;
+
+  /// Licence categories (« B », « C »…).
+  final List<String> licences;
+  final DateTime? validUntil;
+}
+
+final driverDetailsProvider = FutureProvider.autoDispose<DriverDetails?>((ref) async {
+  final profile = ref.watch(sessionProvider);
+  if (profile == null || !profile.roles.contains(AppRole.chauffeur)) return null;
+  final row = await ref.watch(profileGatewayProvider).myDriverRecord();
+  return row == null ? null : DriverDetails.fromJson(row);
+});
+
 /// Space shown to a user who is both driver and requester (Mob-P01 « Mon espace »).
 /// Starts on `AuthConfig.preferredRole`; a single-role user always has their role.
 final activeSpaceProvider = NotifierProvider<ActiveSpaceNotifier, AppRole?>(ActiveSpaceNotifier.new);

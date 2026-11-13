@@ -69,10 +69,42 @@ void main() {
     expect(find.text('+225 07 00 00 00 00'), findsOneWidget);
   });
 
-  testWidgets('driver details open « Page en maintenance » (no backend yet)', (tester) async {
+  testWidgets('driver: « Mes informations » from ma_fiche_chauffeur (Mob-P01)', (tester) async {
+    await pumpApp(tester, location: '/profil');
+
+    expect(find.text('Téléphone'), findsOneWidget);
+    expect(find.text('+225 05 11 22 33 44'), findsOneWidget);
+    expect(find.text('Permis'), findsOneWidget);
+    expect(find.text('B, C'), findsOneWidget);
+    expect(find.text('Fin de validité'), findsOneWidget);
+    expect(find.text('12/03/2027'), findsOneWidget);
+    expect(find.text('Modifier mes coordonnées'), findsNothing);
+  });
+
+  testWidgets('driver: empty record shows dashes', (tester) async {
+    await pumpApp(
+      tester,
+      location: '/profil',
+      profiles: FakeProfileGateway(driverRecord: const {'telephone': null, 'permis': [], 'finValidite': null}),
+    );
+    expect(find.text('—'), findsNWidgets(3));
+  });
+
+  testWidgets('driver: load error, then retry', (tester) async {
+    final profiles = FakeProfileGateway(driverError: const ProfileGatewayException('Connexion impossible.'));
+    await pumpApp(tester, location: '/profil', profiles: profiles);
+    expect(find.text('Impossible de charger vos informations.'), findsOneWidget);
+
+    profiles.driverError = null;
+    await tapText(tester, 'Réessayer');
+    expect(find.text('B, C'), findsOneWidget);
+  });
+
+  testWidgets('driver: « Signaler une erreur à mon gestionnaire » opens « Page en maintenance »', (tester) async {
     await pumpApp(tester, location: '/profil', features: const Features());
-    await tapText(tester, 'Téléphone, permis');
+    await tapText(tester, 'Signaler une erreur à mon gestionnaire');
     expect(find.byType(MaintenanceScreen), findsOneWidget);
+    expect(find.text('Signaler une erreur'), findsOneWidget);
   });
 
   testWidgets('requester only: no space switch, details from Supabase', (tester) async {

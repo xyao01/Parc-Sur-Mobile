@@ -29,6 +29,12 @@ class SupabaseProfileGateway implements ProfileGateway {
       });
 
   @override
+  Future<Map<String, dynamic>?> myDriverRecord() => _guard(() async {
+        final data = await _client.rpc('ma_fiche_chauffeur');
+        return data is Map ? Map<String, dynamic>.from(data) : null;
+      });
+
+  @override
   Future<void> updateMyAccount({
     required String firstName,
     required String lastName,

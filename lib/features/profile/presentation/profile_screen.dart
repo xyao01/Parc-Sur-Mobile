@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/routes.dart';
 import '../../../core/app_role.dart';
 import '../../../core/features.dart';
+import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
 import '../../../core/widgets/maintenance_screen.dart';
@@ -209,21 +210,27 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Driver's phone and licence: table `chauffeur` not readable by drivers → « Page en maintenance ».
+/// Driver: phone and licence from `ma_fiche_chauffeur`, read only (the manager keeps the record).
 class _DriverDetails extends ConsumerWidget {
   const _DriverDetails();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wired = ref.watch(featuresProvider).driverAccountDetails;
-    return WhiteCard(
-      radius: 14,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: _LinkRow(
-        icon: ParcIcons.user,
-        label: 'Téléphone, permis',
-        onTap: wired ? () {} : () => openMaintenance(context, 'Mes informations de chauffeur'),
-      ),
+    final async = ref.watch(driverDetailsProvider);
+    final d = async.value;
+    final until = d?.validUntil;
+    final reportWired = ref.watch(featuresProvider).driverRecordReport;
+    return _DetailsCard(
+      loading: async.isLoading && !async.hasValue,
+      failed: async.hasError && !async.hasValue,
+      onRetry: () => ref.invalidate(driverDetailsProvider),
+      rows: [
+        ('Téléphone', d?.phone ?? '—'),
+        ('Permis', d == null || d.licences.isEmpty ? '—' : d.licences.join(', ')),
+        ('Fin de validité', until == null ? '—' : FrenchDates.date(until)),
+      ],
+      actionLabel: 'Signaler une erreur à mon gestionnaire',
+      onAction: reportWired ? () {} : () => openMaintenance(context, 'Signaler une erreur'),
     );
   }
 }
@@ -237,27 +244,57 @@ class _RequesterDetails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(accountDetailsProvider);
     final d = async.value;
-    if (async.isLoading && !async.hasValue) {
+    return _DetailsCard(
+      loading: async.isLoading && !async.hasValue,
+      failed: async.hasError && !async.hasValue,
+      onRetry: () => ref.invalidate(accountDetailsProvider),
+      rows: [
+        ('Téléphone', d?.phone ?? '—'),
+        ('Fonction', d?.function ?? '—'),
+        ('Localisation', d?.location ?? '—'),
+      ],
+      actionLabel: 'Modifier mes coordonnées',
+      onAction: () => showAccountSheet(context, profile: profile, details: d),
+    );
+  }
+}
+
+/// « Mes informations » card of Mob-P01: label/value rows, then one action link.
+class _DetailsCard extends StatelessWidget {
+  const _DetailsCard({
+    required this.loading,
+    required this.failed,
+    required this.onRetry,
+    required this.rows,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final bool loading;
+  final bool failed;
+  final VoidCallback onRetry;
+  final List<(String, String)> rows;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
       return const Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator(color: ParcColors.primary)),
       );
     }
-    if (async.hasError && !async.hasValue) {
+    if (failed) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const ParcErrorAlert(message: 'Impossible de charger vos informations.'),
           const SizedBox(height: 12),
-          ParcOutlinedButton(label: 'Réessayer', height: 46, onPressed: () => ref.invalidate(accountDetailsProvider)),
+          ParcOutlinedButton(label: 'Réessayer', height: 46, onPressed: onRetry),
         ],
       );
     }
-    final rows = [
-      ('Téléphone', d?.phone ?? '—'),
-      ('Fonction', d?.function ?? '—'),
-      ('Localisation', d?.location ?? '—'),
-    ];
     return WhiteCard(
       radius: 14,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -278,12 +315,12 @@ class _RequesterDetails extends ConsumerWidget {
           Semantics(
             button: true,
             child: InkWell(
-              onTap: () => showAccountSheet(context, profile: profile, details: d),
+              onTap: onAction,
               child: SizedBox(
                 height: 48,
                 child: Row(
                   children: [
-                    Expanded(child: Text('Modifier mes coordonnées', style: parcText(14, weight: 800, color: ParcColors.primary))),
+                    Expanded(child: Text(actionLabel, style: parcText(14, weight: 800, color: ParcColors.primary))),
                     const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.primary),
                   ],
                 ),

@@ -78,7 +78,8 @@ void main() {
     expect(find.text('B, C'), findsOneWidget);
     expect(find.text('Fin de validité'), findsOneWidget);
     expect(find.text('12/03/2027'), findsOneWidget);
-    expect(find.text('Modifier mes coordonnées'), findsNothing);
+    expect(find.text('Modifier mes coordonnées'), findsOneWidget);
+    expect(find.text('Signaler une erreur à mon gestionnaire'), findsOneWidget);
   });
 
   testWidgets('driver: empty record shows dashes', (tester) async {
@@ -98,6 +99,33 @@ void main() {
     profiles.driverError = null;
     await tapText(tester, 'Réessayer');
     expect(find.text('B, C'), findsOneWidget);
+  });
+
+  testWidgets('driver: « Modifier mes coordonnées » saves name and phone, not the licence', (tester) async {
+    final profiles = FakeProfileGateway();
+    await pumpApp(tester, location: '/profil', profiles: profiles);
+    await tapText(tester, 'Modifier mes coordonnées');
+
+    expect(find.text('Mes coordonnées'), findsOneWidget);
+    expect(find.byKey(const Key('account.location')), findsNothing);
+    expect(find.text('Le permis est mis à jour par votre gestionnaire.'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('account.phone')), '+225 01 99 88 77 66');
+    await tester.enterText(find.byKey(const Key('account.lastName')), 'Kouadio-Brou');
+    await tapText(tester, 'Enregistrer');
+
+    expect(profiles.driverUpdates.single, {'prenom': 'Yao', 'nom': 'Kouadio-Brou', 'phone': '+225 01 99 88 77 66'});
+    expect(profiles.updates, isEmpty);
+    expect(find.text('Mes coordonnées'), findsNothing);
+    expect(find.text('Yao Kouadio-Brou'), findsOneWidget);
+    expect(find.text('+225 01 99 88 77 66'), findsOneWidget);
+  });
+
+  testWidgets('driver: the server refusal is shown in the sheet', (tester) async {
+    final profiles = FakeProfileGateway(updateError: const ProfileGatewayException('Saisissez votre nom.'));
+    await pumpApp(tester, location: '/profil', profiles: profiles);
+    await tapText(tester, 'Modifier mes coordonnées');
+    await tapText(tester, 'Enregistrer');
+    expect(find.text('Saisissez votre nom.'), findsOneWidget);
   });
 
   testWidgets('driver: « Signaler une erreur à mon gestionnaire » opens « Page en maintenance »', (tester) async {

@@ -35,18 +35,26 @@ final accountDetailsProvider = FutureProvider.autoDispose<AccountDetails?>((ref)
 
 /// « Mes informations » of a driver (`ma_fiche_chauffeur`), read only.
 class DriverDetails {
-  const DriverDetails({this.phone, this.licences = const [], this.validUntil});
+  const DriverDetails({this.firstName, this.lastName, this.phone, this.licences = const [], this.validUntil});
 
   factory DriverDetails.fromJson(Map<String, dynamic> j) {
-    final phone = (j['telephone'] as String?)?.trim();
+    String? text(String k) {
+      final s = (j[k] as String?)?.trim();
+      return s == null || s.isEmpty ? null : s;
+    }
+
     final until = j['finValidite'] as String?;
     return DriverDetails(
-      phone: phone == null || phone.isEmpty ? null : phone,
+      firstName: text('prenom'),
+      lastName: text('nom'),
+      phone: text('telephone'),
       licences: [for (final c in (j['permis'] as List?) ?? const []) '$c'],
       validUntil: until == null ? null : DateTime.tryParse(until),
     );
   }
 
+  final String? firstName;
+  final String? lastName;
   final String? phone;
 
   /// Licence categories (« B », « C »…).

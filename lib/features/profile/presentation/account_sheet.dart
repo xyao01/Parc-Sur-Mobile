@@ -12,32 +12,43 @@ import '../../missions/presentation/journey_widgets.dart';
 import '../data/profile_gateway.dart';
 import '../data/profile_providers.dart';
 
-/// « Mes coordonnées » sheet (Mob-P01): saved with `modifier_mon_compte`.
-Future<void> showAccountSheet(BuildContext context, {required MobileProfile profile, AccountDetails? details}) {
+/// « Mes coordonnées » sheet (Mob-P01) of a requester: saved with `modifier_mon_compte`.
+Future<void> showAccountSheet(BuildContext context, {required MobileProfile profile, AccountDetails? details}) =>
+    _show(context, _AccountSheet(profile: profile, details: details));
+
+/// Same sheet for a driver, without « Localisation »: saved with `modifier_ma_fiche_chauffeur`.
+Future<void> showDriverAccountSheet(BuildContext context, {required MobileProfile profile, DriverDetails? details}) =>
+    _show(context, _AccountSheet(profile: profile, driver: details ?? const DriverDetails(), isDriver: true));
+
+Future<void> _show(BuildContext context, Widget sheet) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: ParcColors.scrim,
-    builder: (_) => _AccountSheet(profile: profile, details: details),
+    builder: (_) => sheet,
   );
 }
 
 class _AccountSheet extends ConsumerStatefulWidget {
-  const _AccountSheet({required this.profile, this.details});
+  const _AccountSheet({required this.profile, this.details, this.driver, this.isDriver = false});
 
   final MobileProfile profile;
   final AccountDetails? details;
+  final DriverDetails? driver;
+  final bool isDriver;
 
   @override
   ConsumerState<_AccountSheet> createState() => _AccountSheetState();
 }
 
 class _AccountSheetState extends ConsumerState<_AccountSheet> {
-  late final _firstName = TextEditingController(text: widget.profile.firstName);
-  late final _lastName = TextEditingController(text: widget.profile.lastName);
-  late final _phone = TextEditingController(text: widget.details?.phone ?? '');
+  late final _firstName = TextEditingController(text: widget.driver?.firstName ?? widget.profile.firstName);
+  late final _lastName = TextEditingController(text: widget.driver?.lastName ?? widget.profile.lastName);
+  late final _phone = TextEditingController(
+    text: (widget.isDriver ? widget.driver?.phone : widget.details?.phone) ?? '',
+  );
   late final _location = TextEditingController(text: widget.details?.location ?? '');
   bool _busy = false;
   String? _error;
@@ -59,14 +70,24 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
       _error = null;
     });
     try {
-      await ref.read(profileGatewayProvider).updateMyAccount(
-            firstName: _firstName.text.trim(),
-            lastName: _lastName.text.trim(),
-            phone: _phone.text.trim(),
-            location: _location.text.trim().isEmpty ? null : _location.text.trim(),
-          );
+      final gateway = ref.read(profileGatewayProvider);
+      if (widget.isDriver) {
+        await gateway.updateMyDriverRecord(
+          firstName: _firstName.text.trim(),
+          lastName: _lastName.text.trim(),
+          phone: _phone.text.trim(),
+        );
+        ref.invalidate(driverDetailsProvider);
+      } else {
+        await gateway.updateMyAccount(
+          firstName: _firstName.text.trim(),
+          lastName: _lastName.text.trim(),
+          phone: _phone.text.trim(),
+          location: _location.text.trim().isEmpty ? null : _location.text.trim(),
+        );
+        ref.invalidate(accountDetailsProvider);
+      }
       ref.read(sessionProvider.notifier).rename(_firstName.text, _lastName.text);
-      ref.invalidate(accountDetailsProvider);
       if (mounted) Navigator.of(context).pop();
     } on ProfileGatewayException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -81,10 +102,18 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text.rich(TextSpan(children: [
-          TextSpan(text: label, style: parcText(13, weight: 700)),
-          if (suffix != null) TextSpan(text: ' $suffix', style: parcText(13, weight: 600, color: ParcColors.textMuted)),
-        ])),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: label, style: parcText(13, weight: 700)),
+              if (suffix != null)
+                TextSpan(
+                  text: ' $suffix',
+                  style: parcText(13, weight: 600, color: ParcColors.textMuted),
+                ),
+            ],
+          ),
+        ),
         const SizedBox(height: 6),
         ParcTextField(key: key, controller: c, height: 48, fontSize: 15, keyboardType: type),
       ],
@@ -111,7 +140,9 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Semantics(header: true, child: Text('Mes coordonnées', style: parcText(18, weight: 800)))),
+                    Expanded(
+                      child: Semantics(header: true, child: Text('Mes coordonnées', style: parcText(18, weight: 800))),
+                    ),
                     Semantics(
                       button: true,
                       label: 'Fermer',
@@ -143,7 +174,13 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
                 const SizedBox(height: 14),
                 _field('Téléphone', const Key('account.phone'), _phone, type: TextInputType.phone),
                 const SizedBox(height: 14),
-                _field('Localisation', const Key('account.location'), _location, suffix: '(facultatif)'),
+                if (widget.isDriver)
+                  Text(
+                    'Le permis est mis à jour par votre gestionnaire.',
+                    style: parcText(13, color: ParcColors.textMuted, height: 1.5),
+                  )
+                else
+                  _field('Localisation', const Key('account.location'), _location, suffix: '(facultatif)'),
                 if (_error != null) ...[const SizedBox(height: 14), ParcErrorAlert(message: _error!)],
                 const SizedBox(height: 14),
                 JourneyActionButton(label: 'Enregistrer', busy: _busy, onPressed: _save),

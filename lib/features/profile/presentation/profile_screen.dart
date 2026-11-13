@@ -61,7 +61,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: parcText(14, color: ParcColors.textSecondary, height: 1.5),
               ),
               const SizedBox(height: 14),
-              JourneyActionButton(label: 'Se déconnecter', danger: true, onPressed: () => Navigator.of(sheet).pop(true)),
+              JourneyActionButton(
+                label: 'Se déconnecter',
+                danger: true,
+                onPressed: () => Navigator.of(sheet).pop(true),
+              ),
               const SizedBox(height: 14),
               ParcOutlinedButton(label: 'Annuler', height: 48, onPressed: () => Navigator.of(sheet).pop(false)),
             ],
@@ -134,7 +138,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     textAlign: TextAlign.center,
                     style: parcText(13, color: ParcColors.textMuted, height: 1.5),
                   ),
-                  Text('Version $appVersion', textAlign: TextAlign.center, style: parcText(13, color: ParcColors.textMuted)),
+                  Text(
+                    'Version $appVersion',
+                    textAlign: TextAlign.center,
+                    style: parcText(13, color: ParcColors.textMuted),
+                  ),
                   const SizedBox(height: 16),
                   _busy
                       ? const Center(child: CircularProgressIndicator(color: ParcColors.danger))
@@ -145,8 +153,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
       ),
-      bottomNavigationBar:
-          space == AppRole.chauffeur ? const ChauffeurBottomNav(currentIndex: 3) : const DemandeurBottomNav(currentIndex: 3),
+      bottomNavigationBar: space == AppRole.chauffeur
+          ? const ChauffeurBottomNav(currentIndex: 3)
+          : const DemandeurBottomNav(currentIndex: 3),
     );
   }
 }
@@ -185,7 +194,8 @@ class _Header extends StatelessWidget {
                       header: true,
                       child: Text(profile.fullName, style: parcText(22, weight: 800, color: ParcColors.surface)),
                     ),
-                    if (profile.email.isNotEmpty) Text(profile.email, style: parcText(13, color: ParcColors.onDarkMuted)),
+                    if (profile.email.isNotEmpty)
+                      Text(profile.email, style: parcText(13, color: ParcColors.onDarkMuted)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
@@ -210,7 +220,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Driver: phone and licence from `ma_fiche_chauffeur`, read only (the manager keeps the record).
+/// Driver: `ma_fiche_chauffeur`; name and phone editable, the licence stays with the manager.
 class _DriverDetails extends ConsumerWidget {
   const _DriverDetails();
 
@@ -220,6 +230,7 @@ class _DriverDetails extends ConsumerWidget {
     final d = async.value;
     final until = d?.validUntil;
     final reportWired = ref.watch(featuresProvider).driverRecordReport;
+    final profile = ref.watch(sessionProvider)!;
     return _DetailsCard(
       loading: async.isLoading && !async.hasValue,
       failed: async.hasError && !async.hasValue,
@@ -229,8 +240,13 @@ class _DriverDetails extends ConsumerWidget {
         ('Permis', d == null || d.licences.isEmpty ? '—' : d.licences.join(', ')),
         ('Fin de validité', until == null ? '—' : FrenchDates.date(until)),
       ],
-      actionLabel: 'Signaler une erreur à mon gestionnaire',
-      onAction: reportWired ? () {} : () => openMaintenance(context, 'Signaler une erreur'),
+      actions: [
+        ('Modifier mes coordonnées', () => showDriverAccountSheet(context, profile: profile, details: d)),
+        (
+          'Signaler une erreur à mon gestionnaire',
+          reportWired ? () {} : () => openMaintenance(context, 'Signaler une erreur'),
+        ),
+      ],
     );
   }
 }
@@ -248,34 +264,27 @@ class _RequesterDetails extends ConsumerWidget {
       loading: async.isLoading && !async.hasValue,
       failed: async.hasError && !async.hasValue,
       onRetry: () => ref.invalidate(accountDetailsProvider),
-      rows: [
-        ('Téléphone', d?.phone ?? '—'),
-        ('Fonction', d?.function ?? '—'),
-        ('Localisation', d?.location ?? '—'),
-      ],
-      actionLabel: 'Modifier mes coordonnées',
-      onAction: () => showAccountSheet(context, profile: profile, details: d),
+      rows: [('Téléphone', d?.phone ?? '—'), ('Fonction', d?.function ?? '—'), ('Localisation', d?.location ?? '—')],
+      actions: [('Modifier mes coordonnées', () => showAccountSheet(context, profile: profile, details: d))],
     );
   }
 }
 
-/// « Mes informations » card of Mob-P01: label/value rows, then one action link.
+/// « Mes informations » card of Mob-P01: label/value rows, then action links.
 class _DetailsCard extends StatelessWidget {
   const _DetailsCard({
     required this.loading,
     required this.failed,
     required this.onRetry,
     required this.rows,
-    required this.actionLabel,
-    required this.onAction,
+    required this.actions,
   });
 
   final bool loading;
   final bool failed;
   final VoidCallback onRetry;
   final List<(String, String)> rows;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final List<(String, VoidCallback)> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -303,30 +312,44 @@ class _DetailsCard extends StatelessWidget {
           for (final r in rows)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 13),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: ParcColors.dividerSoft))),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: ParcColors.dividerSoft)),
+              ),
               child: Row(
                 children: [
                   Text(r.$1, style: parcText(13, weight: 600, color: ParcColors.textMuted)),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(r.$2, textAlign: TextAlign.right, style: parcText(14, weight: 800))),
+                  Expanded(
+                    child: Text(r.$2, textAlign: TextAlign.right, style: parcText(14, weight: 800)),
+                  ),
                 ],
               ),
             ),
-          Semantics(
-            button: true,
-            child: InkWell(
-              onTap: onAction,
-              child: SizedBox(
-                height: 48,
-                child: Row(
-                  children: [
-                    Expanded(child: Text(actionLabel, style: parcText(14, weight: 800, color: ParcColors.primary))),
-                    const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.primary),
-                  ],
+          for (final (i, a) in actions.indexed)
+            Container(
+              decoration: i == actions.length - 1
+                  ? null
+                  : const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: ParcColors.dividerSoft)),
+                    ),
+              child: Semantics(
+                button: true,
+                child: InkWell(
+                  onTap: a.$2,
+                  child: SizedBox(
+                    height: 48,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(a.$1, style: parcText(14, weight: 800, color: ParcColors.primary)),
+                        ),
+                        const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.primary),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

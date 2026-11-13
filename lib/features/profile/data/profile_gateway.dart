@@ -7,6 +7,9 @@ abstract interface class ProfileGateway {
   /// `ma_fiche_chauffeur()`: `telephone`, `permis` (categories), `finValidite` of the signed-in driver.
   Future<Map<String, dynamic>?> myDriverRecord();
 
+  /// `modifier_ma_fiche_chauffeur(prenom, nom, phone)`: the licence stays with the manager.
+  Future<void> updateMyDriverRecord({required String firstName, required String lastName, required String phone});
+
   /// `modifier_mon_compte(prenom, nom, phone, localisation)`.
   Future<void> updateMyAccount({
     required String firstName,

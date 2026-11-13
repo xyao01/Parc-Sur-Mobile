@@ -27,6 +27,19 @@ class FakeProfileGateway implements ProfileGateway {
     return driverRecord;
   }
 
+  final driverUpdates = <Map<String, dynamic>>[];
+
+  @override
+  Future<void> updateMyDriverRecord({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async {
+    if (updateError != null) throw updateError!;
+    driverUpdates.add({'prenom': firstName, 'nom': lastName, 'phone': phone});
+    driverRecord = {...?driverRecord, 'prenom': firstName, 'nom': lastName, 'telephone': phone};
+  }
+
   @override
   Future<void> updateMyAccount({
     required String firstName,

@@ -115,6 +115,9 @@ void main() {
 
     expect(profiles.driverUpdates.single, {'prenom': 'Yao', 'nom': 'Kouadio-Brou', 'phone': '+225 01 99 88 77 66'});
     expect(profiles.updates, isEmpty);
+    expect(find.text('Coordonnées enregistrées'), findsOneWidget);
+    expect(find.text('Vos coordonnées ont été enregistrées.'), findsOneWidget);
+    await tapText(tester, 'Fermer');
     expect(find.text('Mes coordonnées'), findsNothing);
     expect(find.text('Yao Kouadio-Brou'), findsOneWidget);
     expect(find.text('+225 01 99 88 77 66'), findsOneWidget);
@@ -164,6 +167,8 @@ void main() {
       'phone': '+225 01 02 03 04 05',
       'localisation': 'Abidjan, Plateau',
     });
+    expect(find.text('Vos coordonnées ont été enregistrées.'), findsOneWidget);
+    await tapText(tester, 'Fermer');
     expect(find.text('Mes coordonnées'), findsNothing);
     expect(find.text('Koffi Jean Ouattara'), findsOneWidget);
     expect(find.text('+225 01 02 03 04 05'), findsOneWidget);

@@ -51,6 +51,7 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
   );
   late final _location = TextEditingController(text: widget.details?.location ?? '');
   bool _busy = false;
+  bool _saved = false;
   String? _error;
 
   @override
@@ -88,7 +89,7 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
         ref.invalidate(accountDetailsProvider);
       }
       ref.read(sessionProvider.notifier).rename(_firstName.text, _lastName.text);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) setState(() => _saved = true);
     } on ProfileGatewayException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -163,27 +164,44 @@ class _AccountSheetState extends ConsumerState<_AccountSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(child: _field('Prénom', const Key('account.firstName'), _firstName)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _field('Nom', const Key('account.lastName'), _lastName)),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                _field('Téléphone', const Key('account.phone'), _phone, type: TextInputType.phone),
-                const SizedBox(height: 14),
-                if (widget.isDriver)
-                  Text(
-                    'Le permis est mis à jour par votre gestionnaire.',
-                    style: parcText(13, color: ParcColors.textMuted, height: 1.5),
-                  )
-                else
-                  _field('Localisation', const Key('account.location'), _location, suffix: '(facultatif)'),
-                if (_error != null) ...[const SizedBox(height: 14), ParcErrorAlert(message: _error!)],
-                const SizedBox(height: 14),
-                JourneyActionButton(label: 'Enregistrer', busy: _busy, onPressed: _save),
+                if (_saved) ...[
+                  ResultView(
+                    icon: ParcIcons.checkBold,
+                    iconBg: ParcColors.successBg,
+                    iconColor: ParcColors.success,
+                    topPadding: 18,
+                    title: 'Coordonnées enregistrées',
+                    message: Text(
+                      'Vos coordonnées ont été enregistrées.',
+                      textAlign: TextAlign.center,
+                      style: parcText(15, color: ParcColors.textSecondary, height: 1.5),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  JourneyActionButton(label: 'Fermer', onPressed: () => Navigator.of(context).pop()),
+                ] else ...[
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(child: _field('Prénom', const Key('account.firstName'), _firstName)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _field('Nom', const Key('account.lastName'), _lastName)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _field('Téléphone', const Key('account.phone'), _phone, type: TextInputType.phone),
+                  const SizedBox(height: 14),
+                  if (widget.isDriver)
+                    Text(
+                      'Le permis est mis à jour par votre gestionnaire.',
+                      style: parcText(13, color: ParcColors.textMuted, height: 1.5),
+                    )
+                  else
+                    _field('Localisation', const Key('account.location'), _location, suffix: '(facultatif)'),
+                  if (_error != null) ...[const SizedBox(height: 14), ParcErrorAlert(message: _error!)],
+                  const SizedBox(height: 14),
+                  JourneyActionButton(label: 'Enregistrer', busy: _busy, onPressed: _save),
+                ],
               ],
             ),
           ),

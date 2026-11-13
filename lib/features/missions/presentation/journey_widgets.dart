@@ -201,7 +201,7 @@ class InfoRows extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(flex: 2, child: Text(r.$1, style: parcText(13, weight: 600, color: ParcColors.textMuted))),
+                  Expanded(flex: 2, child: Text(r.$1, style: parcText(13, weight: 600, color: ParcColors.textMuted))),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 3,

@@ -84,6 +84,15 @@ void main() {
       expect(tester.widget<Text>(find.byKey(const Key('home.stat.new'))).data, '0');
     });
 
+    testWidgets('a mission whose return is recorded shows « Retour enregistré », not the departure time', (tester) async {
+      final rows = inProgressRows(duringMission);
+      rows.single['controleRetour'] = {'id': 'c-2', 'saisiLe': duringMission.toUtc().toIso8601String(), 'kilometrage': 61520};
+      await pumpApp(tester, location: '/missions', now: duringMission, missions: FakeMissionsGateway(rows: rows));
+      expect(find.text('Retour enregistré'), findsOneWidget);
+      expect(find.textContaining('Départ à'), findsNothing);
+      expect(find.text('Reprendre la mission en cours'), findsNothing);
+    });
+
     testWidgets('a mission under way is resumed from the home', (tester) async {
       await pumpApp(tester, location: '/missions', now: duringMission, missions: FakeMissionsGateway(rows: inProgressRows(duringMission)));
       await tapText(tester, 'Reprendre la mission en cours');
@@ -186,6 +195,10 @@ void main() {
       expect(find.text('3/4'), findsOneWidget);
       expect(find.text('1 anomalie : Propreté et équipements'), findsOneWidget);
       expect(find.text('Cochez la confirmation pour continuer'), findsOneWidget);
+      // Values are right-aligned on the same edge, whatever the label length.
+      final right = tester.getTopRight(find.text('1 anomalie : Propreté et équipements')).dx;
+      expect(tester.getTopRight(find.text('84 230 km')).dx, right);
+      expect(tester.getTopRight(find.text('3/4')).dx, right);
 
       await tapText(tester, 'Je confirme que le véhicule est prêt à partir et que les informations saisies sont exactes.');
       await tapText(tester, 'Valider et démarrer la mission');

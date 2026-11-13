@@ -368,7 +368,10 @@ class _TodayCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StatusChip('Départ à ${FrenchDates.time(m.departure)}', bg: ParcColors.primarySoft, fg: ParcColors.primary),
+              m.returnCheckDone
+                  // Same wording as the planning (C11) once the return is recorded.
+                  ? const StatusChip('Retour enregistré', bg: ParcColors.primarySoft, fg: ParcColors.primary)
+                  : StatusChip('Départ à ${FrenchDates.time(m.departure)}', bg: ParcColors.primarySoft, fg: ParcColors.primary),
               Text(m.number, style: parcText(12, weight: 600, color: ParcColors.textMuted)),
             ],
           ),

@@ -205,6 +205,15 @@ void main() {
       expect(find.byType(MissionInProgressScreen), findsOneWidget);
     });
 
+    testWidgets('refuses an odometer below the last reading (l2-mis-01)', (tester) async {
+      await pumpApp(tester, location: '/missions/m-139/preparation', missions: journeyGateway());
+      await enterKm(tester, const Key('preparation.odometer'), '84 000');
+      expect(find.text('Inférieur au dernier relevé (84 112 km)'), findsOneWidget);
+      await tapText(tester, 'Continuer vers la validation');
+      expect(find.text('Le kilométrage ne peut pas être inférieur au dernier relevé (84 112 km).'), findsOneWidget);
+      expect(find.byType(DepartureValidationScreen), findsNothing);
+    });
+
     testWidgets('asks for the odometer before continuing', (tester) async {
       await pumpApp(tester, location: '/missions/m-139/preparation', missions: journeyGateway());
       await tapText(tester, 'Continuer vers la validation');

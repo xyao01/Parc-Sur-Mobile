@@ -52,6 +52,7 @@ class ParcTextField extends StatelessWidget {
     this.onChanged,
     this.textInputAction,
     this.semanticLabel,
+    this.focusNode,
   });
 
   final TextEditingController? controller;
@@ -70,11 +71,13 @@ class ParcTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final TextInputAction? textInputAction;
   final String? semanticLabel;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final field = TextField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       obscureText: obscureText,
       autofillHints: autofillHints,

@@ -51,6 +51,12 @@ class _PreparationState extends ConsumerState<_Preparation> {
       setState(() => _error = 'Indiquez le kilométrage au compteur.');
       return;
     }
+    final last = widget.mission.vehicle.odometerKm;
+    if (last != null && km < last) {
+      // Same rule as the database (relevé ≥ dernier relevé), checked before sending (l2-mis-01).
+      setState(() => _error = 'Le kilométrage ne peut pas être inférieur au dernier relevé (${FrenchDates.km(last)} km).');
+      return;
+    }
     _draft.odometerKm = km;
     setState(() => _error = null);
     context.push(Routes.departureValidation(widget.mission.id));

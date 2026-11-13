@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/core/app_role.dart';
 import 'package:parc_sur_mobile/features/alerts/data/alerts_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
+import 'package:parc_sur_mobile/features/alerts/domain/alert_routes.dart';
+import 'package:parc_sur_mobile/features/alerts/domain/app_alert.dart';
 import 'package:parc_sur_mobile/features/alerts/presentation/alerts_screen.dart';
+import 'package:parc_sur_mobile/features/requests/presentation/request_detail_screen.dart';
 import 'package:parc_sur_mobile/features/requests/presentation/demandeur_nav.dart';
 
 import '../../helpers/fake_alerts_gateway.dart';
@@ -54,10 +57,10 @@ void main() {
   testWidgets('opening an unread alert marks it read on the server', (tester) async {
     final alerts = gateway();
     await pumpApp(tester, location: '/alertes', profile: driver, alerts: alerts);
-    await tapText(tester, 'Rappel : mission D-0142 demain');
+    await tapText(tester, 'Échéance à J-30');
 
     expect(alerts.markedDriver, [
-      ['a-1'],
+      ['a-3'],
     ]);
     expect(find.text('2 non lues'), findsOneWidget);
   });
@@ -94,6 +97,42 @@ void main() {
     expect(find.byType(DemandeurBottomNav), findsOneWidget);
     await tapText(tester, 'Tout marquer comme lu');
     expect(alerts.markedRequester, [null]);
+  });
+
+  testWidgets('a request alert opens the request in the app (l2-not-03)', (tester) async {
+    final alerts = FakeAlertsGateway(requester: [
+      {
+        'id': 'a-9',
+        'titre': 'Demande D-0142 validée',
+        'message': 'Véhicule attribué.',
+        'lien': '/mes-demandes?id=m-142',
+        'creeLe': prototypeNow.toUtc().toIso8601String(),
+        'lueLe': null,
+      },
+    ]);
+    await pumpApp(tester, location: '/alertes', profile: requester, alerts: alerts);
+    await tapText(tester, 'Demande D-0142 validée');
+
+    expect(alerts.markedRequester, [
+      ['a-9'],
+    ]);
+    expect(find.byType(RequestDetailScreen), findsOneWidget);
+  });
+
+  test('web links are mapped to mobile screens', () {
+    AppAlert alert(String? link, AlertAudience a, [String title = 'Mission D-0142 attribuée']) => AppAlert(
+          id: 'x',
+          title: title,
+          message: '',
+          link: link,
+          createdAt: prototypeNow,
+          audience: a,
+        );
+    expect(alertRoute(alert('/mes-demandes?id=m-1', AlertAudience.requester)), '/demandes/m-1');
+    expect(alertRoute(alert('/mes-demandes', AlertAudience.requester)), '/mes-demandes');
+    expect(alertRoute(alert(null, AlertAudience.driver)), '/planning');
+    expect(alertRoute(alert(null, AlertAudience.driver, 'Échéance à J-30')), isNull);
+    expect(alertRoute(alert('/vehicules/abc', AlertAudience.requester)), isNull);
   });
 
   testWidgets('loading failure: message and retry', (tester) async {

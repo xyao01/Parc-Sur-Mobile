@@ -50,6 +50,11 @@ class _FormState extends ConsumerState<_Form> {
   late final TextEditingController _notes;
   Map<String, String> _errors = const {};
 
+  /// Fields in display order, to focus the first one in error (tr-04).
+  static const _order = ['purpose', 'destination', 'departure', 'return', 'passengers'];
+  final _focus = {for (final f in _order) f: FocusNode()};
+  final _keys = {for (final f in _order) f: GlobalKey()};
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +70,9 @@ class _FormState extends ConsumerState<_Form> {
     _purpose.dispose();
     _destination.dispose();
     _notes.dispose();
+    for (final f in _focus.values) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -85,10 +93,15 @@ class _FormState extends ConsumerState<_Form> {
   }
 
   void _check() {
-    FocusScope.of(context).unfocus();
     final errors = _draft.validate(ref.read(clockProvider)());
     setState(() => _errors = errors);
-    if (errors.isNotEmpty) return;
+    if (errors.isNotEmpty) {
+      final first = _order.firstWhere(errors.containsKey);
+      _focus[first]!.requestFocus();
+      final target = _keys[first]!.currentContext;
+      if (target != null) Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 200), alignment: 0.2);
+      return;
+    }
     context.push(widget.editing ? Routes.editRequestSummary(widget.draftKey) : Routes.newRequestSummary);
   }
 
@@ -115,11 +128,13 @@ class _FormState extends ConsumerState<_Form> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ParcLabeled(
+            key: _keys['purpose'],
             label: 'Motif de la mission',
             labelSize: 13,
             child: ParcTextField(
               key: const Key('request.purpose'),
               controller: _purpose,
+              focusNode: _focus['purpose'],
               height: 48,
               fontSize: 15,
               textInputAction: TextInputAction.next,
@@ -128,11 +143,13 @@ class _FormState extends ConsumerState<_Form> {
           _error('purpose'),
           const SizedBox(height: 16),
           ParcLabeled(
+            key: _keys['destination'],
             label: 'Destination(s)',
             labelSize: 13,
             child: ParcTextField(
               key: const Key('request.destination'),
               controller: _destination,
+              focusNode: _focus['destination'],
               height: 48,
               fontSize: 15,
               textInputAction: TextInputAction.next,
@@ -140,13 +157,26 @@ class _FormState extends ConsumerState<_Form> {
           ),
           _error('destination'),
           const SizedBox(height: 16),
-          _DateTimeField(label: 'Départ', value: d.departure, onTap: () => _pick(departure: true)),
+          _DateTimeField(
+            key: _keys['departure'],
+            focusNode: _focus['departure'],
+            label: 'Départ',
+            value: d.departure,
+            onTap: () => _pick(departure: true),
+          ),
           _error('departure'),
           const SizedBox(height: 16),
-          _DateTimeField(label: 'Retour', value: d.plannedReturn, onTap: () => _pick(departure: false)),
+          _DateTimeField(
+            key: _keys['return'],
+            focusNode: _focus['return'],
+            label: 'Retour',
+            value: d.plannedReturn,
+            onTap: () => _pick(departure: false),
+          ),
           _error('return'),
           const SizedBox(height: 16),
           Container(
+            key: _keys['passengers'],
             padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
             decoration: parcFieldDecoration(),
             child: Row(
@@ -226,7 +256,9 @@ class _FormState extends ConsumerState<_Form> {
 }
 
 class _DateTimeField extends StatelessWidget {
-  const _DateTimeField({required this.label, required this.value, required this.onTap});
+  const _DateTimeField({super.key, required this.label, required this.value, required this.onTap, this.focusNode});
+
+  final FocusNode? focusNode;
 
   final String label;
   final DateTime? value;
@@ -250,6 +282,7 @@ class _DateTimeField extends StatelessWidget {
             side: const BorderSide(color: ParcColors.inputBorder, width: 1.5),
           ),
           child: InkWell(
+            focusNode: focusNode,
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Container(

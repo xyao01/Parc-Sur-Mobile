@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/app_role.dart';
 import '../../../core/clock.dart';
@@ -15,6 +16,7 @@ import '../../missions/presentation/journey_widgets.dart';
 import '../../requests/presentation/demandeur_nav.dart';
 import '../data/alerts_gateway.dart';
 import '../data/alerts_providers.dart';
+import '../domain/alert_routes.dart';
 import '../domain/app_alert.dart';
 
 /// Mob-C12 · Alertes (chauffeur et demandeur), validated proposal.
@@ -39,6 +41,13 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     } catch (_) {
       if (mounted) setState(() => _error = 'Les alertes n’ont pas pu être marquées comme lues. Réessayez.');
     }
+  }
+
+  /// Marks the alert read, then opens its screen when the app has one.
+  Future<void> _open(AppAlert a) async {
+    if (a.unread) await _markRead([a]);
+    final route = alertRoute(a);
+    if (route != null && mounted) context.push(route);
   }
 
   @override
@@ -72,7 +81,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
           Padding(padding: EdgeInsets.only(top: gi == 0 ? 8 : 18, bottom: 4), child: SectionCaps(entry.key)),
           for (final a in entry.value) ...[
             const SizedBox(height: 10),
-            _AlertTile(alert: a, time: _timeOf(a.createdAt, now), onTap: () => a.unread ? _markRead([a]) : null),
+            _AlertTile(alert: a, time: _timeOf(a.createdAt, now), onTap: () => _open(a)),
           ],
         ],
       ];

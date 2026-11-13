@@ -95,6 +95,11 @@ void main() {
       expect(find.text('Indiquez l’objet de la mission.'), findsOneWidget);
       expect(find.text('Indiquez la destination, ex. Bouaké.'), findsOneWidget);
       expect(find.text('Indiquez la date et l’heure de départ.'), findsOneWidget);
+      // tr-04: focus goes to the first field in error.
+      final purpose = tester.widget<EditableText>(
+        find.descendant(of: find.byKey(const Key('request.purpose')), matching: find.byType(EditableText)),
+      );
+      expect(purpose.focusNode.hasFocus, isTrue);
 
       await tester.enterText(find.byKey(const Key('request.purpose')), 'Inspection de dépôts pétroliers');
       await tester.enterText(find.byKey(const Key('request.destination')), 'Bouaké');

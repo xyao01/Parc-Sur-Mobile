@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
 import '../../../core/clock.dart';
+import '../domain/mission_rules.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -53,7 +54,8 @@ class _PlanningScreenState extends ConsumerState<PlanningScreen> {
     final selected = on(_selected);
     final rest = [
       for (final (i, d) in days.indexed)
-        if (i != _day) for (final m in on(d)) (i, m),
+        if (i != _day)
+          for (final m in on(d)) (i, m),
     ];
     final isToday = FrenchDates.sameDay(_selected, _today);
 
@@ -73,7 +75,10 @@ class _PlanningScreenState extends ConsumerState<PlanningScreen> {
         if (selected.isEmpty)
           const _EmptyDay()
         else
-          for (final (i, m) in selected.indexed) ...[if (i > 0) const SizedBox(height: 14), _MissionCard(mission: m)],
+          for (final (i, m) in selected.indexed) ...[
+            if (i > 0) const SizedBox(height: 14),
+            _MissionCard(mission: m, now: ref.read(clockProvider)()),
+          ],
         if (rest.isNotEmpty) ...[
           const SizedBox(height: 20),
           const SectionCaps('Reste de la semaine'),
@@ -150,7 +155,10 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: Semantics(header: true, child: Text('Planning', style: parcText(22, weight: 800, color: ParcColors.surface))),
+                child: Semantics(
+                  header: true,
+                  child: Text('Planning', style: parcText(22, weight: 800, color: ParcColors.surface)),
+                ),
               ),
               Text(FrenchDates.monthYear(monday), style: parcText(13, weight: 600, color: ParcColors.onDarkMuted)),
             ],
@@ -219,11 +227,7 @@ class _DayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = [
-      FrenchDates.longDay(day),
-      if (hasMission) 'mission prévue',
-      if (today) "aujourd'hui",
-    ].join(', ');
+    final label = [FrenchDates.longDay(day), if (hasMission) 'mission prévue', if (today) "aujourd'hui"].join(', ');
     return Semantics(
       button: true,
       selected: selected,
@@ -244,7 +248,10 @@ class _DayButton extends StatelessWidget {
                   FrenchDates.weekdayShort(day).toUpperCase(),
                   style: parcText(11, weight: 700, color: selected ? ParcColors.textMuted : ParcColors.onDarkMuted),
                 ),
-                Text('${day.day}', style: parcText(18, weight: 800, color: selected ? ParcColors.navy : ParcColors.surface)),
+                Text(
+                  '${day.day}',
+                  style: parcText(18, weight: 800, color: selected ? ParcColors.navy : ParcColors.surface),
+                ),
                 const SizedBox(height: 2),
                 Container(
                   width: 6,
@@ -270,18 +277,28 @@ String _period(Mission m) =>
 String _detail(Mission m) => '${m.vehicle.label} · ${m.passengers} passager${m.passengers > 1 ? 's' : ''}';
 
 class _MissionCard extends StatelessWidget {
-  const _MissionCard({required this.mission});
+  const _MissionCard({required this.mission, required this.now});
 
   final Mission mission;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
     final m = mission;
+    final open = departureCheckOpen(m, now);
     final (String status, Color chipBg, Color chipFg, Color border, String? route) = m.returnCheckDone
         ? ('Retour enregistré', ParcColors.primarySoft, ParcColors.primary, ParcColors.divider, null)
         : m.inProgress
-            ? ('En cours', ParcColors.successBg, ParcColors.success, ParcColors.success, Routes.inProgress(m.id))
-            : ('À préparer', ParcColors.pendingBg, ParcColors.pendingText, ParcColors.primary, Routes.departurePreparation(m.id));
+        ? ('En cours', ParcColors.successBg, ParcColors.success, ParcColors.success, Routes.inProgress(m.id))
+        : open
+        ? (
+            'À préparer',
+            ParcColors.pendingBg,
+            ParcColors.pendingText,
+            ParcColors.primary,
+            Routes.departurePreparation(m.id),
+          )
+        : ('À venir', ParcColors.primarySoft, ParcColors.primary, ParcColors.divider, null);
     return Material(
       color: ParcColors.surface,
       shape: RoundedRectangleBorder(
@@ -310,11 +327,22 @@ class _MissionCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: Text(_detail(m), style: parcText(13, weight: 600, color: ParcColors.textSecondary))),
-                  const SizedBox(width: 12),
-                  const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.textMuted),
+                  Expanded(
+                    child: Text(_detail(m), style: parcText(13, weight: 600, color: ParcColors.textSecondary)),
+                  ),
+                  if (route != null) ...[
+                    const SizedBox(width: 12),
+                    const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.textMuted),
+                  ],
                 ],
               ),
+              if (!m.departureCheckDone && !open) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Le contrôle de départ s’ouvre le jour du départ.',
+                  style: parcText(13, color: ParcColors.textMuted),
+                ),
+              ],
             ],
           ),
         ),
@@ -349,8 +377,10 @@ class _RestTile extends StatelessWidget {
                 width: 48,
                 child: Column(
                   children: [
-                    Text(FrenchDates.weekdayShort(m.departure).toUpperCase(),
-                        style: parcText(11, weight: 700, color: ParcColors.textMuted)),
+                    Text(
+                      FrenchDates.weekdayShort(m.departure).toUpperCase(),
+                      style: parcText(11, weight: 700, color: ParcColors.textMuted),
+                    ),
                     Text('${m.departure.day}', style: parcText(22, weight: 800)),
                   ],
                 ),
@@ -386,7 +416,11 @@ class _EmptyDay extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
         decoration: BoxDecoration(color: ParcColors.surface, borderRadius: BorderRadius.circular(16)),
-        child: Text('Aucune mission ce jour.', textAlign: TextAlign.center, style: parcText(14, color: ParcColors.textMuted)),
+        child: Text(
+          'Aucune mission ce jour.',
+          textAlign: TextAlign.center,
+          style: parcText(14, color: ParcColors.textMuted),
+        ),
       ),
     );
   }

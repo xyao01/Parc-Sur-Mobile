@@ -77,6 +77,19 @@ void main() {
     expect(find.byType(DeparturePreparationScreen), findsOneWidget);
   });
 
+  testWidgets('before the departure day, a mission is « À venir » and the departure check stays closed', (tester) async {
+    await pumpApp(tester, location: '/planning', missions: gateway());
+    await tester.tap(find.bySemanticsLabel('Semaine suivante'));
+    await tester.pumpAndSettle();
+    await tapText(tester, 'Korhogo');
+
+    expect(find.text('À venir'), findsOneWidget);
+    expect(find.text('À préparer'), findsNothing);
+    expect(find.text('Le contrôle de départ s’ouvre le jour du départ.'), findsOneWidget);
+    await tapText(tester, 'Korhogo');
+    expect(find.byType(DeparturePreparationScreen), findsNothing);
+  });
+
   testWidgets('a mission under way is « En cours » and opens the mission in progress', (tester) async {
     final now = DateTime(2026, 11, 3, 9, 16);
     await pumpApp(tester, location: '/planning', now: now, missions: FakeMissionsGateway(rows: inProgressRows(now)));

@@ -11,9 +11,9 @@ class DepartureDraft {
 
   /// Checklist lines left unchecked (shown in the recap).
   List<String> get anomalies => [
-        for (final c in MissionFlowConfig.departureChecklist)
-          if (!checked.contains(c.label)) c.label,
-      ];
+    for (final c in MissionFlowConfig.departureChecklist)
+      if (!checked.contains(c.label)) c.label,
+  ];
 }
 
 /// Entries kept from Mob-C08 « Arrivée » to Mob-C10 « Clôture ».
@@ -45,7 +45,7 @@ class ReturnDraft {
 }
 
 Map<String, String> pointsFor(List<CheckPoint> checklist, Set<String> checked) => {
-      for (final c in checklist)
-        for (final key in c.keys)
-          key: checked.contains(c.label) ? MissionFlowConfig.checkedValue : MissionFlowConfig.uncheckedValue,
-    };
+  for (final c in checklist)
+    for (final key in c.keys)
+      key: checked.contains(c.label) ? MissionFlowConfig.checkedValue : MissionFlowConfig.uncheckedValue,
+};

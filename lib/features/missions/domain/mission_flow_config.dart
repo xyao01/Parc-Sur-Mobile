@@ -13,6 +13,10 @@ abstract final class MissionFlowConfig {
   /// Steps of the journey shown in the headers (« Étape 5 sur 10 »).
   static const totalSteps = 10;
 
+  /// The departure check (C05) opens this many days before the departure day, from midnight.
+  /// 0 = on the departure day only (decision of 13/11/2026).
+  static const departureCheckOpensDaysBefore = 0;
+
   /// Fuel gauge choices (label shown → value stored by `enregistrer_controle`).
   /// The database also accepts `vide`, not offered by the prototype.
   static const fuelLevels = {'1/4': 'quart', '1/2': 'moitie', '3/4': 'trois_quarts', 'Plein': 'plein'};

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_gateway.dart';
@@ -101,6 +102,8 @@ class SupabaseAuthGateway implements AuthGateway {
         _ => AuthGatewayError.other,
       };
       throw AuthGatewayException(error);
+    } on http.ClientException {
+      throw const AuthGatewayException(AuthGatewayError.network);
     } on SocketException {
       throw const AuthGatewayException(AuthGatewayError.network);
     } on TimeoutException {

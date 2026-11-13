@@ -47,6 +47,7 @@ class _EndCheckState extends ConsumerState<_EndCheck> {
   Widget build(BuildContext context) {
     final m = widget.mission;
     return JourneyScaffold(
+      offlineBanner: true,
       header: JourneyHeader(
         title: 'Contrôle de fin de mission',
         subtitle: '${m.vehicle.label} · ${stepLabel(9)}',

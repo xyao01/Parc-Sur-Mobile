@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../missions/domain/mission_flow_config.dart';
@@ -68,6 +69,8 @@ class SupabaseRequestsGateway implements RequestsGateway {
     } on PostgrestException catch (e) {
       // Business refusals of the trigger / functions carry a French message for the user.
       throw RequestsGatewayException(e.message);
+    } on http.ClientException {
+      throw const RequestsGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on SocketException {
       throw const RequestsGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on TimeoutException {

@@ -14,6 +14,7 @@ import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parc_text_field.dart';
+import '../data/control_submitter.dart';
 import '../data/missions_gateway.dart';
 import '../data/missions_providers.dart';
 import '../domain/mission.dart';
@@ -77,7 +78,8 @@ class _ValidationState extends ConsumerState<_Validation> {
       _error = null;
     });
     try {
-      await ref.read(missionsGatewayProvider).recordControl(
+      // Kept on the phone without network, sent as soon as it is back (l2-mob-04).
+      await ref.read(controlSubmitterProvider).submit(ControlEntry(
             id: _submissionId,
             missionId: id,
             type: 'depart',
@@ -85,7 +87,7 @@ class _ValidationState extends ConsumerState<_Validation> {
             fuel: MissionFlowConfig.fuelLevels[_draft.fuel]!,
             points: _draft.points,
             enteredAt: ref.read(clockProvider)(),
-          );
+          ));
       ref.invalidate(missionsProvider);
       ref.invalidate(departureDraftProvider(id));
       if (mounted) context.go(Routes.inProgress(id));
@@ -136,6 +138,7 @@ class _ValidationState extends ConsumerState<_Validation> {
       _View.blocked => _blockedView(),
     };
     return JourneyScaffold(
+      offlineBanner: true,
       header: JourneyHeader(
         title: 'Validation du départ',
         subtitle: '${m.number} · ${stepLabel(6)}',

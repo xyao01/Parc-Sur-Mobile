@@ -35,6 +35,7 @@ abstract final class Routes {
   static String editRequestSummary(String id) => '/demandes/$id/modifier/recapitulatif'; // D03 (edit)
   static String requestSent(String id) => '/demandes/$id/envoyee'; // D04
   static const myRequests = '/mes-demandes'; // D05
+  static String monthlyReading(String vehicleId) => '/mon-vehicule/$vehicleId/releve'; // D11 (l2-km-02)
   static String requestDetail(String id) => '/demandes/$id'; // D06
   static String requestDecision(String id) => '/demandes/$id/decision'; // D07
   static String requestTracking(String id) => '/demandes/$id/suivi'; // D08

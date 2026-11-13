@@ -77,6 +77,7 @@ class _PreparationState extends ConsumerState<_Preparation> {
       );
     }
     return JourneyScaffold(
+      offlineBanner: true,
       header: JourneyHeader(
         title: 'Préparation du départ',
         subtitle: '${m.vehicle.label} · ${stepLabel(5)}',

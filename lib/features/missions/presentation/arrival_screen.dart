@@ -89,6 +89,7 @@ class _ArrivalState extends ConsumerState<_Arrival> {
           : KmHint('Inférieur au kilométrage de départ (${FrenchDates.km(leftKm)} km)', ok: false);
     }
     return JourneyScaffold(
+      offlineBanner: true,
       header: JourneyHeader(
         title: 'Arrivée à destination',
         subtitle: '${m.number} · ${stepLabel(8)}',

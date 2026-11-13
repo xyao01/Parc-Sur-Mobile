@@ -44,6 +44,8 @@ dependencies:
   flutter_svg: ^2.3.3
   flutter_localizations:
     sdk: flutter
+  connectivity_plus: ^7.3.2
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

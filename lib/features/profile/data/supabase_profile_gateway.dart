@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'profile_gateway.dart';
@@ -46,6 +47,8 @@ class SupabaseProfileGateway implements ProfileGateway {
       return await call();
     } on PostgrestException catch (e) {
       throw ProfileGatewayException(e.message);
+    } on http.ClientException {
+      throw const ProfileGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on SocketException {
       throw const ProfileGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on TimeoutException {

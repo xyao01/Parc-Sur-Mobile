@@ -12,6 +12,7 @@ import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parc_text_field.dart';
+import '../data/control_submitter.dart';
 import '../data/missions_gateway.dart';
 import '../data/missions_providers.dart';
 import '../domain/mission.dart';
@@ -50,6 +51,9 @@ class _ClosureState extends ConsumerState<_Closure> {
   bool _confirmed = false;
   bool _busy = false;
   bool _done = false;
+
+  /// Kept on the phone, not sent yet (no network).
+  bool _queued = false;
   String? _error;
 
   @override
@@ -71,7 +75,8 @@ class _ClosureState extends ConsumerState<_Closure> {
       _error = null;
     });
     try {
-      await ref.read(missionsGatewayProvider).recordControl(
+      // Kept on the phone without network, sent as soon as it is back (l2-mob-04).
+      final result = await ref.read(controlSubmitterProvider).submit(ControlEntry(
             id: _submissionId,
             missionId: widget.mission.id,
             type: 'retour',
@@ -80,8 +85,13 @@ class _ClosureState extends ConsumerState<_Closure> {
             points: _draft.points,
             observations: _draft.observationsText,
             enteredAt: _draft.arrivedAt ?? ref.read(clockProvider)(),
-          );
-      if (mounted) setState(() => _done = true);
+          ));
+      if (mounted) {
+        setState(() {
+          _done = true;
+          _queued = result == SubmitResult.queued;
+        });
+      }
     } on MissionsGatewayException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -108,6 +118,7 @@ class _ClosureState extends ConsumerState<_Closure> {
     final arrivedAt = _draft.arrivedAt;
 
     return JourneyScaffold(
+      offlineBanner: true,
       header: JourneyHeader(
         title: 'Clôture de la demande',
         subtitle: '${m.number} · ${stepLabel(10)}',
@@ -127,7 +138,9 @@ class _ClosureState extends ConsumerState<_Closure> {
               // The prototype says « Demande clôturée »: the manager closes the request (see README).
               title: 'Fin de mission enregistrée',
               message: Text(
-                'La mission ${m.number} est terminée. Le gestionnaire du parc clôturera la demande.',
+                _queued
+                    ? 'Enregistrée sur le téléphone : elle sera envoyée dès le retour du réseau.'
+                    : 'La mission ${m.number} est terminée. Le gestionnaire du parc clôturera la demande.',
                 textAlign: TextAlign.center,
                 style: parcText(15, color: ParcColors.textSecondary, height: 1.5),
               ),

@@ -8,6 +8,7 @@ class MobileProfile {
     required this.roles,
     this.email = '',
     this.mustChangePassword = false,
+    this.hasAssignedVehicle = false,
   });
 
   factory MobileProfile.fromJson(
@@ -24,6 +25,24 @@ class MobileProfile {
         },
         email: email,
         mustChangePassword: mustChangePassword,
+        hasAssignedVehicle: json['vehiculeAffecte'] == true,
+      );
+
+  /// Kept on the phone to reopen the session without network (l2-mob-04).
+  Map<String, dynamic> toCache() => {
+        'prenom': firstName,
+        'nom': lastName,
+        'chauffeur': roles.contains(AppRole.chauffeur),
+        'demandeur': roles.contains(AppRole.demandeur),
+        'vehiculeAffecte': hasAssignedVehicle,
+        'email': email,
+        'provisoire': mustChangePassword,
+      };
+
+  static MobileProfile fromCache(Map<String, dynamic> j) => MobileProfile.fromJson(
+        j,
+        email: (j['email'] as String?) ?? '',
+        mustChangePassword: j['provisoire'] == true,
       );
 
   final String firstName;
@@ -33,6 +52,9 @@ class MobileProfile {
 
   /// Account still on its provisional (default) password: must choose one first.
   final bool mustChangePassword;
+
+  /// `profil_mobile().vehiculeAffecte`: an agent with a vehicle assigned (monthly reading, l2-km-02).
+  final bool hasAssignedVehicle;
 
   String get fullName => [firstName, lastName].where((s) => s.isNotEmpty).join(' ');
 
@@ -45,5 +67,6 @@ class MobileProfile {
         roles: roles,
         email: email,
         mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+        hasAssignedVehicle: hasAssignedVehicle,
       );
 }

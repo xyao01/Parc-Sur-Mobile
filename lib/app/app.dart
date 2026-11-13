@@ -7,6 +7,7 @@ import '../core/theme/parcsur_theme.dart';
 import '../features/auth/application/session.dart';
 import 'router.dart';
 import 'routes.dart';
+import 'sync.dart';
 
 class ParcSurApp extends ConsumerStatefulWidget {
   const ParcSurApp({super.key, this.initialLocation = loginRoute});
@@ -28,6 +29,8 @@ class _ParcSurAppState extends ConsumerState<ParcSurApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Sends the entries kept on the phone at start and when the network comes back (l2-mob-04).
+    ref.watch(syncProvider);
     // The reset link of the e-mail reopens the app: show the reset page (new password or « Lien expiré »).
     ref.listen(passwordRecoveryProvider, (_, status) {
       if (status == RecoveryStatus.ready || status == RecoveryStatus.invalid) _router.go(Routes.resetPassword);

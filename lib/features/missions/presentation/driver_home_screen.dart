@@ -6,6 +6,7 @@ import '../../../app/routes.dart';
 import '../../../core/clock.dart';
 import '../../../core/features.dart';
 import '../../../core/widgets/maintenance_screen.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -80,6 +81,7 @@ class DriverHomeScreen extends ConsumerWidget {
         children: [
           if (driver != null)
             _Header(driver: driver, now: now, pending: pending, unreadAlerts: ref.watch(unreadAlertsCountProvider)),
+          const OfflineBanner(),
           Expanded(
             child: RefreshIndicator(
               color: ParcColors.primary,

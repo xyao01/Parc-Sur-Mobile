@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'alerts_gateway.dart';
@@ -57,6 +58,8 @@ class SupabaseAlertsGateway implements AlertsGateway {
       return await call();
     } on PostgrestException catch (e) {
       throw AlertsGatewayException(e.message);
+    } on http.ClientException {
+      throw const AlertsGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on SocketException {
       throw const AlertsGatewayException('Connexion impossible. Vérifiez votre réseau et réessayez.');
     } on TimeoutException {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/features.dart';
 import '../../../core/widgets/maintenance_screen.dart';
+import '../../../core/widgets/offline_banner.dart';
 
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -73,12 +74,22 @@ class JourneyHeader extends StatelessWidget {
 
 /// Screen body: scrolling content and a white footer with the actions.
 class JourneyScaffold extends StatelessWidget {
-  const JourneyScaffold({super.key, required this.header, required this.body, this.footer, this.bodyPadding});
+  const JourneyScaffold({
+    super.key,
+    required this.header,
+    required this.body,
+    this.footer,
+    this.bodyPadding,
+    this.offlineBanner = false,
+  });
 
   final Widget header;
   final Widget body;
   final List<Widget>? footer;
   final EdgeInsets? bodyPadding;
+
+  /// Screens whose entries work offline (l2-mob-04) show the sync state under the header.
+  final bool offlineBanner;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +98,7 @@ class JourneyScaffold extends StatelessWidget {
       body: Column(
         children: [
           header,
+          if (offlineBanner) const OfflineBanner(),
           Expanded(
             child: SingleChildScrollView(
               padding: bodyPadding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 18),

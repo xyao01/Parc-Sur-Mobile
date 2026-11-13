@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/offline/local_store.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/app_role.dart';
@@ -17,9 +21,28 @@ final initialProfileProvider = Provider<MobileProfile?>((ref) => null);
 /// Signed-in user for this app session, `null` when signed out.
 final sessionProvider = NotifierProvider<SessionNotifier, MobileProfile?>(SessionNotifier.new);
 
+const _profileCacheKey = 'cache.profil.v1';
+
+/// Last signed-in profile kept on the phone (l2-mob-04), or `null`.
+MobileProfile? cachedProfile(LocalStore store) {
+  final raw = store.read(_profileCacheKey);
+  if (raw == null) return null;
+  try {
+    return MobileProfile.fromCache(Map<String, dynamic>.from(jsonDecode(raw) as Map));
+  } catch (_) {
+    return null;
+  }
+}
+
 class SessionNotifier extends Notifier<MobileProfile?> {
   @override
-  MobileProfile? build() => ref.watch(initialProfileProvider);
+  MobileProfile? build() {
+    // Keeps the signed-in profile on the phone, to reopen the session without network.
+    listenSelf((_, next) {
+      ref.read(localStoreProvider).write(_profileCacheKey, next == null ? null : jsonEncode(next.toCache()));
+    });
+    return ref.watch(initialProfileProvider);
+  }
 
   /// Throws a `LoginFailure` when refused.
   Future<MobileProfile> signIn(String email, String password) async {

@@ -17,6 +17,8 @@ import '../../auth/domain/mobile_profile.dart';
 import '../../missions/presentation/journey_widgets.dart';
 import '../data/requests_providers.dart';
 import '../domain/vehicle_request.dart';
+import '../../vehicle/data/vehicle_providers.dart';
+import '../../vehicle/domain/assigned_vehicle.dart';
 import 'demandeur_nav.dart';
 import 'request_widgets.dart';
 
@@ -90,6 +92,9 @@ class RequesterHomeScreen extends ConsumerWidget {
                   children: [
                     _NewRequestCard(onTap: () => context.push(Routes.newRequest)),
                     const SizedBox(height: 14),
+                    // l2-km-02: monthly reading of the vehicle assigned to the agent.
+                    for (final v in ref.watch(myVehiclesProvider).value ?? const <AssignedVehicle>[])
+                      if (!v.monthDone) ...[_MonthlyReadingCard(vehicle: v), const SizedBox(height: 14)],
                     ...content,
                   ],
                 ),
@@ -364,6 +369,53 @@ class _LatestTile extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               StatusChip(state.label, bg: state.bg, fg: state.fg),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MonthlyReadingCard extends StatelessWidget {
+  const _MonthlyReadingCard({required this.vehicle});
+
+  final AssignedVehicle vehicle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: ParcColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: ParcColors.accent, width: 1.5),
+      ),
+      child: InkWell(
+        onTap: () => context.push(Routes.monthlyReading(vehicle.id)),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(color: ParcColors.pendingBg, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: const ParcIcon(ParcIcons.car, size: 22, color: ParcColors.pendingText),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Relevé mensuel à saisir', style: parcText(15, weight: 800)),
+                    Text(vehicle.label, style: parcText(13, color: ParcColors.textMuted)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const ParcIcon(ParcIcons.chevronRight, size: 18, color: ParcColors.textMuted),
             ],
           ),
         ),

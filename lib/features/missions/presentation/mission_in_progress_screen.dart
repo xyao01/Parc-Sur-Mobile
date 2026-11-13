@@ -6,6 +6,7 @@ import '../../../app/routes.dart';
 import '../../../core/clock.dart';
 import '../../../core/features.dart';
 import '../../../core/widgets/maintenance_screen.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
@@ -39,6 +40,7 @@ class MissionInProgressScreen extends ConsumerWidget {
           body: Column(
             children: [
               _Header(mission: m),
+              const OfflineBanner(),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),

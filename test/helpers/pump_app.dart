@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/app/app.dart';
 import 'package:parc_sur_mobile/core/app_role.dart';
 import 'package:parc_sur_mobile/core/clock.dart';
+import 'package:parc_sur_mobile/core/connectivity.dart';
 import 'package:parc_sur_mobile/core/features.dart';
+import 'package:parc_sur_mobile/core/offline/local_store.dart';
 import 'package:parc_sur_mobile/features/auth/application/session.dart';
 import 'package:parc_sur_mobile/features/auth/data/auth_gateway.dart';
 import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
@@ -16,12 +18,15 @@ import 'package:parc_sur_mobile/features/profile/data/profile_gateway.dart';
 import 'package:parc_sur_mobile/features/profile/data/profile_providers.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_gateway.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_providers.dart';
+import 'package:parc_sur_mobile/features/vehicle/data/vehicle_gateway.dart';
+import 'package:parc_sur_mobile/features/vehicle/data/vehicle_providers.dart';
 
 import 'fake_alerts_gateway.dart';
 import 'fake_auth_gateway.dart';
 import 'fake_missions_gateway.dart';
 import 'fake_profile_gateway.dart';
 import 'fake_requests_gateway.dart';
+import 'fake_vehicle_gateway.dart';
 
 /// Date of the prototype screens (Tuesday 3 November 2026, 06:00).
 final prototypeNow = DateTime(2026, 11, 3, 6);
@@ -45,6 +50,9 @@ Future<void> pumpApp(
   AlertsGateway? alerts,
   RequestsGateway? requests,
   ProfileGateway? profiles,
+  VehicleGateway? vehicles,
+  LocalStore? store,
+  Stream<bool>? online,
   Features features = const Features.all(),
   DateTime? now,
   List overrides = const [],
@@ -58,6 +66,9 @@ Future<void> pumpApp(
       overrides: [
         clockProvider.overrideWithValue(() => now ?? prototypeNow),
         featuresProvider.overrideWithValue(features),
+        localStoreProvider.overrideWithValue(store ?? MemoryStore()),
+        onlineProvider.overrideWith((ref) => online ?? Stream.value(true)),
+        vehicleGatewayProvider.overrideWithValue(vehicles ?? FakeVehicleGateway()),
         authGatewayProvider.overrideWithValue(gateway ?? FakeAuthGateway()),
         missionsGatewayProvider.overrideWithValue(
           missions ?? FakeMissionsGateway(rows: prototypeMissionRows(prototypeNow)),

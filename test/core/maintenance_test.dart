@@ -82,6 +82,18 @@ void main() {
     expectMaintenance('Dépenses de la mission');
   });
 
+  testWidgets('« Ajouter un plein » (C07) until saisir_plein_chauffeur is applied', (tester) async {
+    await pumpApp(
+      tester,
+      location: '/missions/m-142/en-cours',
+      now: duringMission,
+      features: production,
+      missions: FakeMissionsGateway(rows: inProgressRows(duringMission)),
+    );
+    await tapText(tester, 'Ajouter un plein');
+    expectMaintenance('Ajouter un plein');
+  });
+
   testWidgets('« Signaler un problème » (D08)', (tester) async {
     await pumpApp(tester, location: '/demandes/m-139/suivi', profile: requester, features: production);
     await tapText(tester, 'Signaler un problème');

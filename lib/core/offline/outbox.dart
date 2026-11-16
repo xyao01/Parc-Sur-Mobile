@@ -11,6 +11,9 @@ abstract final class OutboxKind {
 
   /// `saisir_releve_mensuel` (monthly odometer of an agent's vehicle).
   static const monthlyReading = 'releve_mensuel';
+
+  /// `saisir_plein_chauffeur` (fill-up during the mission, with its ticket photos).
+  static const fuel = 'plein';
 }
 
 /// An entry not sent yet. [id] is the client id sent to the server, which ignores a second copy.

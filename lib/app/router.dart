@@ -13,6 +13,7 @@ import '../features/auth/presentation/new_password_screen.dart';
 import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/missions/presentation/arrival_screen.dart';
 import '../features/missions/presentation/closure_screen.dart';
+import '../features/missions/presentation/fuel_entry_screen.dart';
 import '../features/missions/presentation/departure_preparation_screen.dart';
 import '../features/missions/presentation/departure_validation_screen.dart';
 import '../features/missions/presentation/driver_home_screen.dart';
@@ -91,6 +92,7 @@ GoRouter buildRouter(WidgetRef ref, {String initialLocation = Routes.login}) {
           GoRoute(path: ':id/arrivee', builder: (_, s) => ArrivalScreen(missionId: s.pathParameters['id']!)),
           GoRoute(path: ':id/controle-fin', builder: (_, s) => EndCheckScreen(missionId: s.pathParameters['id']!)),
           GoRoute(path: ':id/cloture', builder: (_, s) => ClosureScreen(missionId: s.pathParameters['id']!)),
+          GoRoute(path: ':id/plein', builder: (_, s) => FuelEntryScreen(missionId: s.pathParameters['id']!)),
         ],
       ),
       GoRoute(path: Routes.planning, builder: (_, _) => const PlanningScreen()),

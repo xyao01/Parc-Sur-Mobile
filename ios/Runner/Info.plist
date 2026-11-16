@@ -8,6 +8,10 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>ParcSûr</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ParcSûr photographie le ticket de caisse des pleins de carburant de vos missions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ParcSûr enregistre la photo du ticket de caisse de vos pleins.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

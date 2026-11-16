@@ -20,6 +20,7 @@ abstract final class Routes {
   static String arrival(String id) => '/missions/$id/arrivee'; // C08
   static String endCheck(String id) => '/missions/$id/controle-fin'; // C09
   static String closure(String id) => '/missions/$id/cloture'; // C10
+  static String fuelEntry(String id) => '/missions/$id/plein'; // C13
 
   /// « Page en maintenance » (`?vue=` name of the view).
   static const maintenance = '/maintenance';

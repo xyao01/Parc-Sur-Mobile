@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/connectivity.dart';
 import '../core/offline/outbox.dart';
 import '../features/missions/data/control_submitter.dart';
+import '../features/missions/data/fuel_submitter.dart';
 import '../features/missions/data/missions_gateway.dart';
 import '../features/missions/data/missions_providers.dart';
+import '../features/missions/data/ticket_camera.dart';
 import '../features/vehicle/data/vehicle_gateway.dart';
 import '../features/vehicle/data/vehicle_providers.dart';
 
@@ -56,6 +58,12 @@ class SyncNotifier extends Notifier<bool> {
   Future<void> _send(OutboxItem item) => switch (item.kind) {
         OutboxKind.control => ControlEntry.fromJson(item.id, item.payload).sendWith(ref.read(missionsGatewayProvider)),
         OutboxKind.monthlyReading => MonthlyReading.fromJson(item.id, item.payload).sendWith(ref.read(vehicleGatewayProvider)),
+        OutboxKind.fuel => _sendFuel(FuelEntry.fromJson(item.id, item.payload)),
         _ => Future.value(),
       };
+
+  Future<void> _sendFuel(FuelEntry entry) async {
+    await entry.sendWith(ref.read(missionsGatewayProvider));
+    await ref.read(ticketCameraProvider).discard(entry.tickets);
+  }
 }

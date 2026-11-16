@@ -18,6 +18,23 @@ abstract interface class MissionsGateway {
     required bool blocksDeparture,
   });
 
+  /// Puts a ticket photo in the `justificatifs` storage at [remotePath] (`carburant/<fill-up id>/…`).
+  /// A copy already there (resend) is not an error.
+  Future<void> uploadTicket({required String localPath, required String remotePath});
+
+  /// `saisir_plein_chauffeur(...)`: fill-up during the mission (Mob-C13). Idempotent on [id].
+  Future<void> recordFuel({
+    required String id,
+    required String missionId,
+    required int odometerKm,
+    required double litres,
+    required int amount,
+    required bool full,
+    String? station,
+    required List<String> tickets,
+    required DateTime enteredAt,
+  });
+
   /// `enregistrer_controle(...)`: departure / return check. Idempotent on [id].
   Future<void> recordControl({
     required String id,

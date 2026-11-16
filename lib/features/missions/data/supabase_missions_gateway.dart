@@ -57,6 +57,48 @@ class SupabaseMissionsGateway implements MissionsGateway {
             'p_saisi_le': enteredAt.toUtc().toIso8601String(),
           }));
 
+  @override
+  Future<void> uploadTicket({required String localPath, required String remotePath}) => _guard(() async {
+        try {
+          await _client.storage.from(ticketBucket).upload(
+                remotePath,
+                File(localPath),
+                fileOptions: const FileOptions(contentType: 'image/jpeg'),
+              );
+        } on StorageException catch (e) {
+          // Sent before the network dropped: the copy on the server is the same photo.
+          if (e.statusCode == '409' || e.message.toLowerCase().contains('exists')) return;
+          throw MissionsGatewayException(e.message);
+        }
+      });
+
+  @override
+  Future<void> recordFuel({
+    required String id,
+    required String missionId,
+    required int odometerKm,
+    required double litres,
+    required int amount,
+    required bool full,
+    String? station,
+    required List<String> tickets,
+    required DateTime enteredAt,
+  }) =>
+      _guard(() => _client.rpc('saisir_plein_chauffeur', params: {
+            'p_id': id,
+            'p_demande': missionId,
+            'p_kilometrage': odometerKm,
+            'p_litres': litres,
+            'p_montant': amount,
+            'p_complet': full,
+            'p_station': station,
+            'p_justificatifs': tickets,
+            'p_saisi_le': enteredAt.toUtc().toIso8601String(),
+          }));
+
+  /// Storage of the receipts (same as the web application).
+  static const ticketBucket = 'justificatifs';
+
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
       return await call();

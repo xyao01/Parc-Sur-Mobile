@@ -86,6 +86,15 @@ class MissionInProgressScreen extends ConsumerWidget {
                   label: 'Je suis arrivé à destination',
                   onPressed: () => context.push(Routes.arrival(m.id)),
                 ),
+                // Mob-C13 (validated 16/11/2026).
+                ParcOutlinedButton(
+                  label: 'Ajouter un plein',
+                  height: 48,
+                  leading: const ParcIcon(ParcIcons.fuel, size: 18, color: ParcColors.primary),
+                  onPressed: () => ref.read(featuresProvider).fuelEntry
+                      ? context.push(Routes.fuelEntry(m.id))
+                      : openMaintenance(context, 'Ajouter un plein'),
+                ),
                 DangerSoftButton(
                   label: 'Signaler un incident',
                   onPressed: () => ref.read(featuresProvider).driverIncident

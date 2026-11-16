@@ -14,6 +14,7 @@ class Features {
     this.missionRating = false,
     this.driverRecordReport = false,
     this.missionExpenses = false,
+    this.fuelEntry = false,
   });
 
   /// Every view enabled (tests of the screens themselves).
@@ -27,7 +28,8 @@ class Features {
         requesterProblem = true,
         missionRating = true,
         driverRecordReport = true,
-        missionExpenses = true;
+        missionExpenses = true,
+        fuelEntry = true;
 
   /// Mob-C02…C04: answer to a request (no answer step in the database).
   final bool driverRequestAnswer;
@@ -58,6 +60,9 @@ class Features {
 
   /// Mob-C10 « Dépenses engagées » (l2-mis-02): table depense closed to drivers.
   final bool missionExpenses;
+
+  /// Mob-C13 « Ajouter un plein »: on once `saisir_plein_chauffeur` (20261116100000_plein_chauffeur) is applied.
+  final bool fuelEntry;
 }
 
 final featuresProvider = Provider<Features>((ref) => const Features());

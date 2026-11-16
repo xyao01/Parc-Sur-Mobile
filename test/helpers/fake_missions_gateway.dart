@@ -123,6 +123,44 @@ class FakeMissionsGateway implements MissionsGateway {
     incidents.add({'missionId': missionId, 'kind': kind, 'description': description, 'blocks': blocksDeparture});
   }
 
+  /// Fill-ups (`saisir_plein_chauffeur`) and ticket uploads.
+  final fuels = <Map<String, dynamic>>[];
+  final uploads = <Map<String, String>>[];
+  Object? fuelError;
+  Object? uploadError;
+
+  @override
+  Future<void> uploadTicket({required String localPath, required String remotePath}) async {
+    if (uploadError != null) throw uploadError!;
+    uploads.add({'local': localPath, 'remote': remotePath});
+  }
+
+  @override
+  Future<void> recordFuel({
+    required String id,
+    required String missionId,
+    required int odometerKm,
+    required double litres,
+    required int amount,
+    required bool full,
+    String? station,
+    required List<String> tickets,
+    required DateTime enteredAt,
+  }) async {
+    if (fuelError != null) throw fuelError!;
+    fuels.add({
+      'id': id,
+      'missionId': missionId,
+      'km': odometerKm,
+      'litres': litres,
+      'amount': amount,
+      'full': full,
+      'station': station,
+      'tickets': tickets,
+      'enteredAt': enteredAt,
+    });
+  }
+
   @override
   Future<void> recordControl({
     required String id,

@@ -14,8 +14,12 @@ import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
 import '../../../core/widgets/parc_text_field.dart';
+import '../../../core/uuid.dart';
+import '../data/control_submitter.dart';
+import '../data/incident_submitter.dart';
 import '../data/missions_gateway.dart';
 import '../data/missions_providers.dart';
+import '../data/ticket_camera.dart';
 import '../domain/mission.dart';
 import '../domain/mission_flow_config.dart';
 import 'journey_widgets.dart';
@@ -47,6 +51,7 @@ class MissionInProgressScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (m.interrupted) ...[_InterruptedBanner(incident: m.seriousIncident!), const SizedBox(height: 14)],
                       _Progress(mission: m, leftAt: leftAt, now: now),
                       const SizedBox(height: 14),
                       StatGrid(tiles: [
@@ -81,7 +86,20 @@ class MissionInProgressScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              JourneyFooter(children: [
+              JourneyFooter(children: m.interrupted
+                  ? [
+                      // Serious incident (validated 16/11/2026): only the return check is left.
+                      ParcPrimaryButton(
+                        label: 'Faire le contrôle de retour',
+                        onPressed: () => context.push(Routes.endCheck(m.id)),
+                      ),
+                      Text(
+                        'À faire quand le véhicule est rendu au parc, avec le gestionnaire.',
+                        textAlign: TextAlign.center,
+                        style: parcText(12, color: ParcColors.textMuted),
+                      ),
+                    ]
+                  : [
                 ParcPrimaryButton(
                   label: 'Je suis arrivé à destination',
                   onPressed: () => context.push(Routes.arrival(m.id)),
@@ -131,17 +149,26 @@ class _Header extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: ParcColors.headerChip, borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(
+                  color: m.interrupted ? ParcColors.interruptedChip : ParcColors.headerChip,
+                  borderRadius: BorderRadius.circular(999),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(color: ParcColors.liveDot, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: m.interrupted ? ParcColors.interruptedDot : ParcColors.liveDot,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Text('Mission en cours', style: parcText(12, weight: 800, color: ParcColors.surface)),
+                    Text(
+                      m.interrupted ? 'Mission interrompue' : 'Mission en cours',
+                      style: parcText(12, weight: 800, color: ParcColors.surface),
+                    ),
                   ],
                 ),
               ),
@@ -163,6 +190,54 @@ class _Header extends StatelessWidget {
           ),
           if (m.purpose != null) Text(m.purpose!, style: parcText(13, color: ParcColors.onDarkMuted)),
         ],
+      ),
+    );
+  }
+}
+
+/// « Mission interrompue » after a serious incident (Mob-C07, validated 16/11/2026).
+class _InterruptedBanner extends StatelessWidget {
+  const _InterruptedBanner({required this.incident});
+
+  final IncidentSummary incident;
+
+  @override
+  Widget build(BuildContext context) {
+    final at = incident.at;
+    final line = 'Incident « ${incident.kind} » signalé${at == null ? '' : ' à ${FrenchDates.time(at)}'}.';
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: ParcColors.dangerBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: ParcColors.dangerBorder),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 1),
+              child: ParcIcon(ParcIcons.warning, size: 22, color: ParcColors.danger),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Mission interrompue', style: parcText(15, weight: 800, color: ParcColors.danger)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$line Le véhicule est immobilisé : le gestionnaire est averti et vous recontacte.',
+                    style: parcText(13, color: ParcColors.interruptedText, height: 1.45),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -265,6 +340,70 @@ class _Progress extends StatelessWidget {
   }
 }
 
+/// « Incident grave : le véhicule ne peut pas continuer » (Mob-C07, validated 16/11/2026).
+class _SeriousBox extends StatelessWidget {
+  const _SeriousBox({required this.checked, required this.onTap});
+
+  final bool checked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      checked: checked,
+      button: true,
+      child: Material(
+        color: checked ? ParcColors.dangerBg : ParcColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: checked ? ParcColors.danger : ParcColors.inputBorder, width: 1.5),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: checked ? ParcColors.danger : ParcColors.surface,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: checked ? ParcColors.danger : ParcColors.checkboxBorder, width: 2),
+                    ),
+                    alignment: Alignment.center,
+                    child: checked ? const ParcIcon(ParcIcons.check, size: 14, color: ParcColors.surface) : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Incident grave : le véhicule ne peut pas continuer', style: parcText(14, weight: 800)),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Le véhicule sera immobilisé et la mission interrompue.',
+                        style: parcText(12, color: ParcColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Future<void> _openIncidentSheet(BuildContext context, Mission mission) {
   return showModalBottomSheet<void>(
     context: context,
@@ -290,8 +429,18 @@ class _IncidentSheetState extends ConsumerState<_IncidentSheet> {
   bool _showError = false;
   bool _busy = false;
   bool _sent = false;
+  bool _queued = false;
+  bool _serious = false;
   String? _failure;
+  final _photos = <String>[];
+  final _id = uuidV4();
   final _description = TextEditingController();
+
+  Future<void> _takePhoto() async {
+    final path = await ref.read(ticketCameraProvider).take();
+    if (path == null || !mounted) return;
+    setState(() => _photos.add(path));
+  }
 
   @override
   void dispose() {
@@ -312,13 +461,23 @@ class _IncidentSheetState extends ConsumerState<_IncidentSheet> {
       _failure = null;
     });
     try {
-      await ref.read(missionsGatewayProvider).reportIncident(
+      final result = await ref.read(incidentSubmitterProvider).submit(IncidentEntry(
+            id: _id,
             missionId: widget.mission.id,
             kind: MissionFlowConfig.incidentKinds[kind],
             description: _description.text.trim().isEmpty ? null : _description.text.trim(),
-            blocksDeparture: false,
-          );
-      if (mounted) setState(() => _sent = true);
+            serious: _serious,
+            photos: List.of(_photos),
+            enteredAt: ref.read(clockProvider)(),
+          ));
+      // Sent: the mission list now carries the serious incident (queued: applied from the outbox).
+      if (result == SubmitResult.sent && _serious) ref.invalidate(missionsProvider);
+      if (mounted) {
+        setState(() {
+          _sent = true;
+          _queued = result == SubmitResult.queued;
+        });
+      }
     } on MissionsGatewayException catch (e) {
       if (mounted) setState(() => _failure = e.message);
     } catch (_) {
@@ -363,12 +522,17 @@ class _IncidentSheetState extends ConsumerState<_IncidentSheet> {
                       Text('Incident envoyé', textAlign: TextAlign.center, style: parcText(20, weight: 800)),
                       const SizedBox(height: 12),
                       Text(
-                        'Le gestionnaire est averti. Vous pouvez poursuivre la mission.',
+                        [
+                          if (_queued) 'Enregistré sur le téléphone : il sera envoyé dès le retour du réseau.',
+                          _serious
+                              ? '${_queued ? '' : 'Le gestionnaire est averti. '}Le véhicule est immobilisé : ne reprenez pas la route et attendez ses instructions.'
+                              : '${_queued ? '' : 'Le gestionnaire est averti. '}Vous pouvez poursuivre la mission.',
+                        ].join(' '),
                         textAlign: TextAlign.center,
                         style: parcText(14, color: ParcColors.textSecondary),
                       ),
                       const SizedBox(height: 12),
-                      ParcPrimaryButton(label: 'Reprendre la mission', height: 52, onPressed: close),
+                      ParcPrimaryButton(label: _serious ? 'Fermer' : 'Reprendre la mission', height: 52, onPressed: close),
                     ],
                   )
                 : Column(
@@ -429,6 +593,22 @@ class _IncidentSheetState extends ConsumerState<_IncidentSheet> {
                         hintText: "Décrivez ce qui s'est passé…",
                         semanticLabel: "Description de l'incident",
                       ),
+                      const SizedBox(height: 14),
+                      const FieldCaption('Photos', suffix: '(facultatif)'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          for (final (i, _) in _photos.indexed) CapturedTile(label: 'Photo ${i + 1}', icon: ParcIcons.camera),
+                          if (_photos.length < MissionFlowConfig.maxIncidentPhotos)
+                            AddCaptureButton(label: 'Prendre une photo', onPressed: _takePhoto),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text("Jusqu'à 2 photos (dégâts, constat).", style: parcText(12, color: ParcColors.textMuted)),
+                      const SizedBox(height: 14),
+                      _SeriousBox(checked: _serious, onTap: () => setState(() => _serious = !_serious)),
                       if (_showError && !ready) ...[const SizedBox(height: 14), const FieldError("Choisissez la nature de l'incident.")],
                       if (_failure != null) ...[const SizedBox(height: 14), ParcErrorAlert(message: _failure!)],
                       const SizedBox(height: 14),

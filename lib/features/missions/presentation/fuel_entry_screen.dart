@@ -8,7 +8,6 @@ import '../../../core/french_dates.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
 import '../../../core/uuid.dart';
-import '../../../core/widgets/dashed_border.dart';
 import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
@@ -290,8 +289,8 @@ class _FuelEntryState extends ConsumerState<_FuelEntry> {
             spacing: 10,
             runSpacing: 10,
             children: [
-              for (final (i, _) in _tickets.indexed) _TicketTile(label: 'Ticket ${i + 1}'),
-              if (_tickets.length < maxTickets) _AddTicketButton(missing: _ticketMissing, onPressed: _takeTicket),
+              for (final (i, _) in _tickets.indexed) CapturedTile(label: 'Ticket ${i + 1}', size: 84, icon: ParcIcons.checkSquare),
+              if (_tickets.length < maxTickets) AddCaptureButton(label: 'Photographier le ticket', size: 84, missing: _ticketMissing, onPressed: _takeTicket),
             ],
           ),
           if (_ticketMissing) ...[
@@ -343,66 +342,6 @@ class _NumberField extends StatelessWidget {
           trailing: Text(unit, style: parcText(13, weight: 700, color: ParcColors.textMuted)),
         ),
       ],
-    );
-  }
-}
-
-/// A receipt taken (Mob-C13: icon tile, not the photo itself).
-class _TicketTile extends StatelessWidget {
-  const _TicketTile({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 84,
-      height: 84,
-      decoration: BoxDecoration(
-        color: ParcColors.primarySoft,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ParcColors.divider),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const ParcIcon(ParcIcons.checkSquare, size: 24, color: ParcColors.primary),
-          const SizedBox(height: 4),
-          Text(label, style: parcText(11, weight: 700, color: ParcColors.primary)),
-        ],
-      ),
-    );
-  }
-}
-
-class _AddTicketButton extends StatelessWidget {
-  const _AddTicketButton({required this.missing, required this.onPressed});
-
-  final bool missing;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Photographier le ticket',
-      excludeSemantics: true,
-      child: CustomPaint(
-        foregroundPainter: DashedBorderPainter(color: missing ? ParcColors.danger : ParcColors.dashed),
-        child: Material(
-          color: ParcColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(12),
-            child: const SizedBox(
-              width: 84,
-              height: 84,
-              child: Center(child: ParcIcon(ParcIcons.plus, size: 26, color: ParcColors.primary)),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

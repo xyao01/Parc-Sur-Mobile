@@ -42,6 +42,23 @@ final missionsProvider = FutureProvider.autoDispose<List<Mission>>((ref) async {
             : r,
     ];
   }
+  // A serious incident kept on the phone already interrupts the mission.
+  for (final item in pending.where((i) => i.kind == OutboxKind.incident && i.payload['serious'] == true)) {
+    final p = item.payload;
+    rows = [
+      for (final r in rows)
+        r['id'] == p['missionId'] && r['incidentGrave'] == null
+            ? {
+                ...r,
+                'incidentGrave': {
+                  'id': item.id,
+                  'nature': p['kind'],
+                  'signaleLe': DateTime.parse(p['enteredAt'] as String).toUtc().toIso8601String(),
+                },
+              }
+            : r,
+    ];
+  }
   return [for (final row in rows) Mission.fromJson(row)]..sort((a, b) => a.departure.compareTo(b.departure));
 });
 

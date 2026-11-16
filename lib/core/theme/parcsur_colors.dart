@@ -46,6 +46,9 @@ abstract final class ParcColors {
   static const dangerStrong = Color(0xFF9B1C12);
   static const dangerBorder = Color(0xFFF3B8B2);
   static const liveDot = Color(0xFF4ADE80);
+  static const interruptedChip = Color(0xFF7A1A12); // « Mission interrompue » (C07)
+  static const interruptedDot = Color(0xFFF97066);
+  static const interruptedText = Color(0xFF7A1A12);
   static const switchOff = Color(0xFF5B7BA3);
 
   static const scrim = Color(0x8C0B1F3A); // rgba(11,31,58,.55)

@@ -65,6 +65,9 @@ abstract final class MissionFlowConfig {
   /// Mob-C07 incident kinds.
   static const incidentKinds = ['Panne', 'Accident', 'Crevaison', 'Voyant moteur', 'Retard', 'Autre'];
 
+  /// Mob-C07 incident photos (pieces of a « sinistre »: 2 at most).
+  static const maxIncidentPhotos = 2;
+
   /// Mob-C09 damage zones.
   static const damageZones = ['Avant', 'Arrière', 'Côté gauche', 'Côté droit', 'Intérieur'];
 

@@ -873,6 +873,77 @@ class PhotoStrip extends StatelessWidget {
   }
 }
 
+/// A photo taken (C07 incident, C13 receipt): icon tile, not the photo itself.
+class CapturedTile extends StatelessWidget {
+  const CapturedTile({super.key, required this.label, required this.icon, this.size = 72});
+
+  final String label;
+  final String icon;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: ParcColors.primarySoft,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ParcColors.divider),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ParcIcon(icon, size: 24, color: ParcColors.primary),
+          const SizedBox(height: 4),
+          Text(label, style: parcText(11, weight: 700, color: ParcColors.primary)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dashed « + » button that opens the camera (C07, C13). Red border when a required photo is missing.
+class AddCaptureButton extends StatelessWidget {
+  const AddCaptureButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.missing = false,
+    this.size = 72,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool missing;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: CustomPaint(
+        foregroundPainter: DashedBorderPainter(color: missing ? ParcColors.danger : ParcColors.dashed),
+        child: Material(
+          color: ParcColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: const Center(child: ParcIcon(ParcIcons.plus, size: 26, color: ParcColors.primary)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Initials in a circle (requester).
 class InitialsAvatar extends StatelessWidget {
   const InitialsAvatar(this.name, {super.key, this.size = 44, this.fontSize = 14});

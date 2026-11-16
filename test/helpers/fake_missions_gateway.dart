@@ -145,6 +145,41 @@ class FakeMissionsGateway implements MissionsGateway {
     available = true;
   }
 
+  /// Incidents during the mission (`signaler_incident_chauffeur`). A serious one interrupts the mission,
+  /// as the server does (`incidentGrave` in the next list).
+  final missionIncidents = <Map<String, dynamic>>[];
+  Object? incidentError;
+
+  @override
+  Future<void> reportMissionIncident({
+    required String id,
+    required String missionId,
+    required String kind,
+    String? description,
+    required bool serious,
+    required List<String> photos,
+    required DateTime enteredAt,
+  }) async {
+    if (incidentError != null) throw incidentError!;
+    missionIncidents.add({
+      'id': id,
+      'missionId': missionId,
+      'kind': kind,
+      'description': description,
+      'serious': serious,
+      'photos': photos,
+      'enteredAt': enteredAt,
+    });
+    if (serious && rows != null) {
+      rows = [
+        for (final r in rows!)
+          r['id'] == missionId && r['incidentGrave'] == null
+              ? {...r, 'incidentGrave': {'id': id, 'nature': kind, 'signaleLe': enteredAt.toUtc().toIso8601String()}}
+              : r,
+      ];
+    }
+  }
+
   /// Fill-ups (`saisir_plein_chauffeur`) and ticket uploads.
   final fuels = <Map<String, dynamic>>[];
   final uploads = <Map<String, String>>[];

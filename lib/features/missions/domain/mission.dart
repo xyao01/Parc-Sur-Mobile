@@ -16,6 +16,7 @@ class Mission {
     this.departureCheck,
     this.returnCheck,
     this.receivedAt,
+    this.seriousIncident,
   });
 
   factory Mission.fromJson(Map<String, dynamic> json) {
@@ -45,6 +46,7 @@ class Mission {
       departureCheck: ControlSummary.fromJson(json['controleDepart']),
       returnCheck: ControlSummary.fromJson(json['controleRetour']),
       receivedAt: json['recueLe'] is String ? DateTime.parse(json['recueLe'] as String).toLocal() : null,
+      seriousIncident: IncidentSummary.fromJson(json['incidentGrave']),
     );
   }
 
@@ -70,6 +72,12 @@ class Mission {
 
   /// When a request awaiting the driver's answer was received (pending requests only).
   final DateTime? receivedAt;
+
+  /// First serious incident reported by the driver (`incidentGrave`): vehicle immobilised, mission interrupted.
+  final IncidentSummary? seriousIncident;
+
+  /// Interrupted by a serious incident: only the return check is left.
+  bool get interrupted => seriousIncident != null;
 
   bool get departureCheckDone => departureCheck != null;
   bool get returnCheckDone => returnCheck != null;
@@ -100,6 +108,23 @@ class ControlSummary {
 
   final DateTime? at;
   final int? odometerKm;
+}
+
+/// A serious incident of the mission (`incidentGrave`: `nature`, `signaleLe`).
+class IncidentSummary {
+  const IncidentSummary({required this.kind, this.at});
+
+  static IncidentSummary? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final at = json['signaleLe'];
+    return IncidentSummary(
+      kind: (json['nature'] as String?) ?? 'Incident',
+      at: at is String ? DateTime.parse(at).toLocal() : null,
+    );
+  }
+
+  final String kind;
+  final DateTime? at;
 }
 
 class Vehicle {

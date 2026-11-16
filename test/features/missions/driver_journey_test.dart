@@ -270,7 +270,7 @@ void main() {
       await tapText(tester, 'Crevaison');
       await tapText(tester, "Envoyer l'incident");
       expect(find.text('Incident envoyé'), findsOneWidget);
-      expect(gateway.incidents.single, allOf(containsPair('kind', 'Crevaison'), containsPair('blocks', false)));
+      expect(gateway.missionIncidents.single, allOf(containsPair('kind', 'Crevaison'), containsPair('serious', false)));
 
       await tapText(tester, 'Reprendre la mission');
       expect(find.text('Incident envoyé'), findsNothing);

@@ -21,7 +21,8 @@ abstract final class ParcIcons {
   static const checkSquare = '$_o stroke-width="2" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
   static const info = '$_o stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>';
   static const wifiOff = '$_o stroke-width="2"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01"/><path d="M3 3l18 18"/></svg>';
-  static const plus = '$_o stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+  static const camera = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+  static const plus ='$_o stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
   static const check = '$_o stroke-width="3.5" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
   static const close = '$_o stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>';
   static const phone = '$_o stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>';

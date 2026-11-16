@@ -14,6 +14,9 @@ abstract final class OutboxKind {
 
   /// `saisir_plein_chauffeur` (fill-up during the mission, with its ticket photos).
   static const fuel = 'plein';
+
+  /// `signaler_incident_chauffeur` (incident during the mission, with its photos).
+  static const incident = 'incident';
 }
 
 /// An entry not sent yet. [id] is the client id sent to the server, which ignores a second copy.

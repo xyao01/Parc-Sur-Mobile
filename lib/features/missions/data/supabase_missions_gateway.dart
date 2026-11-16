@@ -58,6 +58,26 @@ class SupabaseMissionsGateway implements MissionsGateway {
           }));
 
   @override
+  Future<void> reportMissionIncident({
+    required String id,
+    required String missionId,
+    required String kind,
+    String? description,
+    required bool serious,
+    required List<String> photos,
+    required DateTime enteredAt,
+  }) =>
+      _guard(() => _client.rpc('signaler_incident_chauffeur', params: {
+            'p_id': id,
+            'p_demande': missionId,
+            'p_nature': kind,
+            'p_description': description,
+            'p_grave': serious,
+            'p_photos': photos,
+            'p_saisi_le': enteredAt.toUtc().toIso8601String(),
+          }));
+
+  @override
   Future<Map<String, dynamic>> myAvailability() => _guard(() async {
         final data = await _client.rpc('ma_disponibilite');
         return data is Map ? Map<String, dynamic>.from(data) : const {'disponible': true};

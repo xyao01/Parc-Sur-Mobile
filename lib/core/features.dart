@@ -37,7 +37,7 @@ class Features {
   /// Mob-C01 « Je suis disponible ».
   final bool driverAvailability;
 
-  /// Mob-C07 « Signaler un incident ».
+  /// Mob-C07 « Signaler un incident »: on once `signaler_incident_chauffeur` (20261116130000_incident_chauffeur) is applied.
   final bool driverIncident;
 
   /// Mob-C06 « Un problème : bloquer le départ ».

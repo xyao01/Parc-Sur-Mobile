@@ -18,6 +18,19 @@ abstract interface class MissionsGateway {
     required bool blocksDeparture,
   });
 
+  /// Incident during the mission (Mob-C07, `signaler_incident_chauffeur`): recorded as a « sinistre », the managers
+  /// are alerted, and a [serious] one immobilises the vehicle. [photos] are storage paths (`sinistres/…`).
+  /// Idempotent on [id] (offline resend).
+  Future<void> reportMissionIncident({
+    required String id,
+    required String missionId,
+    required String kind,
+    String? description,
+    required bool serious,
+    required List<String> photos,
+    required DateTime enteredAt,
+  });
+
   /// `ma_disponibilite()`: `disponible` (bool), `declareeLe`, and `motif`/`jusqua` of an absence entered by the manager.
   Future<Map<String, dynamic>> myAvailability();
 

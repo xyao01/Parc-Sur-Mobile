@@ -123,6 +123,28 @@ class FakeMissionsGateway implements MissionsGateway {
     incidents.add({'missionId': missionId, 'kind': kind, 'description': description, 'blocks': blocksDeparture});
   }
 
+  /// « Je suis disponible » (`ma_disponibilite`, `declarer_indisponible`, `declarer_disponible`).
+  bool available = true;
+  Object? availabilityError;
+  final availabilityCalls = <Map<String, dynamic>>[];
+
+  @override
+  Future<Map<String, dynamic>> myAvailability() async => {'disponible': available};
+
+  @override
+  Future<void> declareUnavailable({required String id, required DateTime at}) async {
+    if (availabilityError != null) throw availabilityError!;
+    availabilityCalls.add({'available': false, 'at': at, 'id': id});
+    available = false;
+  }
+
+  @override
+  Future<void> declareAvailable({required DateTime at}) async {
+    if (availabilityError != null) throw availabilityError!;
+    availabilityCalls.add({'available': true, 'at': at});
+    available = true;
+  }
+
   /// Fill-ups (`saisir_plein_chauffeur`) and ticket uploads.
   final fuels = <Map<String, dynamic>>[];
   final uploads = <Map<String, String>>[];

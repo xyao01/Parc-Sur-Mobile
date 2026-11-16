@@ -58,6 +58,22 @@ class SupabaseMissionsGateway implements MissionsGateway {
           }));
 
   @override
+  Future<Map<String, dynamic>> myAvailability() => _guard(() async {
+        final data = await _client.rpc('ma_disponibilite');
+        return data is Map ? Map<String, dynamic>.from(data) : const {'disponible': true};
+      });
+
+  @override
+  Future<void> declareUnavailable({required String id, required DateTime at}) => _guard(() => _client.rpc(
+        'declarer_indisponible',
+        params: {'p_id': id, 'p_le': at.toUtc().toIso8601String()},
+      ));
+
+  @override
+  Future<void> declareAvailable({required DateTime at}) =>
+      _guard(() => _client.rpc('declarer_disponible', params: {'p_le': at.toUtc().toIso8601String()}));
+
+  @override
   Future<void> uploadTicket({required String localPath, required String remotePath}) => _guard(() async {
         try {
           await _client.storage.from(ticketBucket).upload(

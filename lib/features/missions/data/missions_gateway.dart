@@ -18,6 +18,15 @@ abstract interface class MissionsGateway {
     required bool blocksDeparture,
   });
 
+  /// `ma_disponibilite()`: `disponible` (bool), `declareeLe`, and `motif`/`jusqua` of an absence entered by the manager.
+  Future<Map<String, dynamic>> myAvailability();
+
+  /// `declarer_indisponible(id, le)`: « Je suis disponible » switched off at [at] (absence opened). Idempotent on [id].
+  Future<void> declareUnavailable({required String id, required DateTime at});
+
+  /// `declarer_disponible(le)`: switched back on at [at] (the open absence ends then).
+  Future<void> declareAvailable({required DateTime at});
+
   /// Puts a ticket photo in the `justificatifs` storage at [remotePath] (`carburant/<fill-up id>/…`).
   /// A copy already there (resend) is not an error.
   Future<void> uploadTicket({required String localPath, required String remotePath});

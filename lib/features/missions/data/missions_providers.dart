@@ -52,6 +52,12 @@ final pendingRequestsProvider = FutureProvider.autoDispose<List<Mission>>((ref) 
 });
 
 /// A mission of the driver, or a pending request, by id.
+/// « Je suis disponible » state at start (`ma_disponibilite`): false while an absence covers today.
+final availabilityProvider = FutureProvider.autoDispose<bool>((ref) async {
+  final r = await ref.watch(missionsGatewayProvider).myAvailability();
+  return r['disponible'] != false;
+});
+
 final missionByIdProvider = Provider.autoDispose.family<AsyncValue<Mission?>, String>((ref, id) {
   Mission? find(List<Mission> list) {
     for (final m in list) {

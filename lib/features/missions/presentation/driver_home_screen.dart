@@ -17,6 +17,8 @@ import '../../../core/widgets/parcsur_logo.dart';
 import '../../alerts/data/alerts_providers.dart';
 import '../../auth/application/session.dart';
 import '../../auth/domain/mobile_profile.dart';
+import '../../../core/uuid.dart';
+import '../data/missions_gateway.dart';
 import '../data/missions_providers.dart';
 import '../domain/mission.dart';
 import 'chauffeur_nav.dart';
@@ -207,19 +209,62 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// « Je suis disponible »: shown as in the prototype; no backend yet, so a tap opens « Page en maintenance ».
-class _AvailabilityRow extends ConsumerWidget {
+/// « Je suis disponible » (decisions of 16/11/2026): switched off, an absence starts at the time of the tap
+/// (`declarer_indisponible`); switched on, it ends then (`declarer_disponible`). Refused by the server when a
+/// mission is assigned that day. « Page en maintenance » until the migration is applied ([Features.driverAvailability]).
+class _AvailabilityRow extends ConsumerStatefulWidget {
   const _AvailabilityRow();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: ref.watch(featuresProvider).driverAvailability ? null : () => openMaintenance(context, 'Disponibilité'),
-      child: _availability(),
+  ConsumerState<_AvailabilityRow> createState() => _AvailabilityRowState();
+}
+
+class _AvailabilityRowState extends ConsumerState<_AvailabilityRow> {
+  bool? _available;
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _toggle(bool current) async {
+    if (_busy) return;
+    final gateway = ref.read(missionsGatewayProvider);
+    final at = ref.read(clockProvider)();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      if (current) {
+        await gateway.declareUnavailable(id: uuidV4(), at: at);
+      } else {
+        await gateway.declareAvailable(at: at);
+      }
+      if (mounted) setState(() => _available = !current);
+    } on MissionsGatewayException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Votre disponibilité n’a pas pu être enregistrée. Réessayez.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final wired = ref.watch(featuresProvider).driverAvailability;
+    if (!wired) {
+      return GestureDetector(onTap: () => openMaintenance(context, 'Disponibilité'), child: _row(true, null));
+    }
+    final available = _available ?? ref.watch(availabilityProvider).value ?? true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _row(available, _busy ? null : () => _toggle(available)),
+        if (_error != null) ...[const SizedBox(height: 8), ParcErrorAlert(message: _error!)],
+      ],
     );
   }
 
-  Widget _availability() {
+  Widget _row(bool available, VoidCallback? onTap) {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
       decoration: BoxDecoration(color: ParcColors.headerChip, borderRadius: BorderRadius.circular(12)),
@@ -230,26 +275,36 @@ class _AvailabilityRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Je suis disponible', style: parcText(14, weight: 700, color: ParcColors.surface)),
-                Text('Les nouvelles demandes peuvent vous être confiées',
-                    style: parcText(12, color: ParcColors.onPrimaryMuted)),
+                Text(
+                  available ? 'Les nouvelles demandes peuvent vous être confiées' : 'Vous ne recevrez pas de nouvelles demandes',
+                  style: parcText(12, color: ParcColors.onPrimaryMuted),
+                ),
               ],
             ),
           ),
           Semantics(
-            toggled: true,
-            enabled: false,
+            toggled: available,
+            button: true,
             label: 'Disponibilité',
-            child: Container(
-              margin: const EdgeInsets.only(right: 6),
-              width: 52,
-              height: 32,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: ParcColors.accent, borderRadius: BorderRadius.circular(999)),
-              alignment: Alignment.centerRight,
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onTap,
               child: Container(
-                width: 24,
-                height: 24,
-                decoration: const BoxDecoration(color: ParcColors.surface, shape: BoxShape.circle),
+                margin: const EdgeInsets.only(right: 6),
+                width: 52,
+                height: 32,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  // Off: #5B7BA3 of the C01 prototype.
+                  color: available ? ParcColors.accent : const Color(0xFF5B7BA3),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                alignment: available ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(color: ParcColors.surface, shape: BoxShape.circle),
+                ),
               ),
             ),
           ),

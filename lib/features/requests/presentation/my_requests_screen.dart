@@ -77,7 +77,6 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
         children: [
           JourneyHeader(
             title: 'Mes demandes',
-            subtitle: stepLabel(5),
             backLabel: "Retour à l'accueil",
             onBack: () => context.go(Routes.requesterHome),
             bottomPadding: 16,

@@ -22,7 +22,7 @@ class JourneyHeader extends StatelessWidget {
   const JourneyHeader({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.onBack,
     this.backLabel = 'Retour',
     this.bottom,
@@ -30,7 +30,8 @@ class JourneyHeader extends StatelessWidget {
   });
 
   final String title;
-  final String subtitle;
+  /// Under the title; none on the screens opened directly (« Mes demandes », detail, decision, 17/11/2026).
+  final String? subtitle;
   final VoidCallback onBack;
   final String backLabel;
   final Widget? bottom;
@@ -59,7 +60,7 @@ class JourneyHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Semantics(header: true, child: Text(title, style: parcText(18, weight: 800, color: ParcColors.surface))),
-                    Text(subtitle, style: parcText(12, color: ParcColors.onPrimaryMuted)),
+                    if (subtitle != null) Text(subtitle!, style: parcText(12, color: ParcColors.onPrimaryMuted)),
                   ],
                 ),
               ),

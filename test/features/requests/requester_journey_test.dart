@@ -143,7 +143,7 @@ void main() {
     testWidgets('lists the requests and filters them by state', (tester) async {
       await pumpRequester(tester, '/mes-demandes');
 
-      expect(find.text('Étape 5 sur 10'), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing, reason: 'opened from the menu: no journey step (17/11/2026)');
       for (final d in ['Bouaké', 'Yamoussoukro', 'Abengourou', 'San-Pédro', 'Daloa']) {
         expect(find.text(d), findsOneWidget);
       }
@@ -166,6 +166,7 @@ void main() {
       final g = await pumpRequester(tester, '/demandes/m-142');
 
       expect(find.text('Demande D-0142'), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing);
       expect(find.text('En attente de validation par le gestionnaire'), findsOneWidget);
       expect(find.text('Demande envoyée'), findsOneWidget);
 
@@ -201,7 +202,8 @@ void main() {
     testWidgets('validated: vehicle, driver and departure', (tester) async {
       await pumpRequester(tester, '/demandes/m-140/decision');
       expect(find.byType(RequestDecisionScreen), findsOneWidget);
-      expect(find.text('D-0140 · Étape 7 sur 10'), findsOneWidget);
+      expect(find.text('D-0140'), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing);
       expect(find.text('Demande validée'), findsOneWidget);
       expect(find.text('Toyota Prado · 2087 FC 01'), findsOneWidget);
       expect(find.text('Aya Koné'), findsOneWidget);
@@ -224,7 +226,7 @@ void main() {
     testWidgets('mission under way, and problem report', (tester) async {
       final g = await pumpRequester(tester, '/demandes/m-139/suivi');
       expect(find.text('Mission en cours'), findsOneWidget);
-      expect(find.text('Étape 8 sur 10'), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing);
       expect(find.text('D-0139 · Destination'), findsOneWidget);
       expect(find.text('Yamoussoukro'), findsWidgets);
       expect(find.text('Yao Kouadio'), findsOneWidget);

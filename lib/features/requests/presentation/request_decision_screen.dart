@@ -111,7 +111,7 @@ class RequestDecisionScreen extends StatelessWidget {
         return JourneyScaffold(
           header: JourneyHeader(
             title: 'Décision du gestionnaire',
-            subtitle: '${r.number} · ${stepLabel(7)}',
+            subtitle: r.number,
             backLabel: 'Retour à la demande',
             onBack: () => requestBack(context, Routes.myRequests),
           ),

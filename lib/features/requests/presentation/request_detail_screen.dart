@@ -122,7 +122,6 @@ class _DetailState extends ConsumerState<_Detail> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: 'Demande ${r.number}',
-        subtitle: stepLabel(6),
         backLabel: 'Retour à mes demandes',
         onBack: () => requestBack(context, Routes.myRequests),
       ),

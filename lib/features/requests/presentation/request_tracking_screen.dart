@@ -151,7 +151,7 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(stepLabel(8), style: parcText(12, weight: 600, color: ParcColors.onDarkMuted)),
+              const SizedBox(width: 44), // keeps the chip centred (no journey step, 17/11/2026)
             ],
           ),
           const SizedBox(height: 14),

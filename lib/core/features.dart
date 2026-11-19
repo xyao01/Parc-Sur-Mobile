@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class Features {
   const Features({
     this.driverRequestAnswer = false,
-    this.driverAvailability = false,
-    this.driverIncident = false,
+    this.driverAvailability = true,
+    this.driverIncident = true,
     this.blockDeparture = false,
     this.photos = false,
     this.phoneCalls = false,
@@ -14,7 +14,7 @@ class Features {
     this.missionRating = false,
     this.driverRecordReport = false,
     this.missionExpenses = false,
-    this.fuelEntry = false,
+    this.fuelEntry = true,
   });
 
   /// Every view enabled (tests of the screens themselves).
@@ -34,10 +34,10 @@ class Features {
   /// Mob-C02…C04: answer to a request (no answer step in the database).
   final bool driverRequestAnswer;
 
-  /// Mob-C01 « Je suis disponible ».
+  /// Mob-C01 « Je suis disponible » (`ma_disponibilite`, `declarer_indisponible`, `declarer_disponible`, 20261116110000_disponibilite_chauffeur).
   final bool driverAvailability;
 
-  /// Mob-C07 « Signaler un incident »: on once `signaler_incident_chauffeur` (20261116130000_incident_chauffeur) is applied.
+  /// Mob-C07 « Signaler un incident » (`signaler_incident_chauffeur`, 20261116130000_incident_chauffeur).
   final bool driverIncident;
 
   /// Mob-C06 « Un problème : bloquer le départ ».
@@ -61,7 +61,7 @@ class Features {
   /// Mob-C10 « Dépenses engagées » (l2-mis-02): table depense closed to drivers.
   final bool missionExpenses;
 
-  /// Mob-C13 « Ajouter un plein »: on once `saisir_plein_chauffeur` (20261116100000_plein_chauffeur) is applied.
+  /// Mob-C13 « Ajouter un plein » (`saisir_plein_chauffeur`, 20261116100000_plein_chauffeur).
   final bool fuelEntry;
 }
 

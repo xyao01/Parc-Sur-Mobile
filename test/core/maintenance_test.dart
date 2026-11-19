@@ -7,7 +7,7 @@ import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
 import '../helpers/fake_missions_gateway.dart';
 import '../helpers/pump_app.dart';
 
-/// Production flags: every view without backend opens « Page en maintenance ».
+/// Production flags: every view without backend opens « Page en maintenance »; views whose migration is applied open.
 const production = Features();
 
 Future<void> tapText(WidgetTester tester, String text) async {
@@ -34,10 +34,10 @@ void main() {
     expectMaintenance('Réponse aux demandes');
   });
 
-  testWidgets('« Je suis disponible » (C01)', (tester) async {
+  testWidgets('« Je suis disponible » (C01) is live in production', (tester) async {
     await pumpApp(tester, location: '/missions', features: production);
     await tapText(tester, 'Je suis disponible');
-    expectMaintenance('Disponibilité');
+    expect(find.byType(MaintenanceScreen), findsNothing);
   });
 
   testWidgets('« Un problème : bloquer le départ » (C06)', (tester) async {
@@ -46,7 +46,7 @@ void main() {
     expectMaintenance('Bloquer le départ');
   });
 
-  testWidgets('« Signaler un incident » (C07), then back to the mission', (tester) async {
+  testWidgets('« Signaler un incident » (C07) is live in production', (tester) async {
     await pumpApp(
       tester,
       location: '/missions/m-142/en-cours',
@@ -55,10 +55,7 @@ void main() {
       missions: FakeMissionsGateway(rows: inProgressRows(duringMission)),
     );
     await tapText(tester, 'Signaler un incident');
-    expectMaintenance('Signaler un incident');
-    await tapText(tester, 'Retour');
     expect(find.byType(MaintenanceScreen), findsNothing);
-    expect(find.text('Mission en cours'), findsOneWidget);
   });
 
   testWidgets('photo button (C05)', (tester) async {
@@ -82,7 +79,7 @@ void main() {
     expectMaintenance('Dépenses de la mission');
   });
 
-  testWidgets('« Ajouter un plein » (C07) until saisir_plein_chauffeur is applied', (tester) async {
+  testWidgets('« Ajouter un plein » (C13) is live in production', (tester) async {
     await pumpApp(
       tester,
       location: '/missions/m-142/en-cours',
@@ -91,7 +88,7 @@ void main() {
       missions: FakeMissionsGateway(rows: inProgressRows(duringMission)),
     );
     await tapText(tester, 'Ajouter un plein');
-    expectMaintenance('Ajouter un plein');
+    expect(find.byType(MaintenanceScreen), findsNothing);
   });
 
   testWidgets('« Signaler un problème » (D08)', (tester) async {

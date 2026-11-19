@@ -70,7 +70,7 @@ class _RequestSummaryScreenState extends ConsumerState<RequestSummaryScreen> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: 'Récapitulatif',
-        subtitle: "Vérifiez avant d'envoyer · ${stepLabel(3)}",
+        subtitle: "Vérifiez avant d'envoyer",
         backLabel: 'Retour au formulaire',
         onBack: () => requestBack(context),
       ),

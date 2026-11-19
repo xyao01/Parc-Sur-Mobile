@@ -132,7 +132,7 @@ class _ResponseState extends ConsumerState<_Response> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: 'Votre réponse',
-        subtitle: '${m.number} · ${stepLabel(4)}',
+        subtitle: m.number,
         backLabel: 'Retour aux détails',
         onBack: () => journeyBack(context),
         bottomPadding: 16,

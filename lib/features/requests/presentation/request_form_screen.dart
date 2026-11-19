@@ -120,7 +120,7 @@ class _FormState extends ConsumerState<_Form> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: widget.editing ? 'Modifier la demande' : 'Nouvelle demande',
-        subtitle: 'Véhicule de mission · ${stepLabel(2)}',
+        subtitle: 'Véhicule de mission',
         backLabel: widget.editing ? 'Retour à la demande' : "Retour à l'accueil",
         onBack: () => requestBack(context),
       ),

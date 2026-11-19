@@ -40,7 +40,7 @@ class _EndState extends State<_End> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: 'Fin de mission',
-        subtitle: '${r.number} · ${stepLabel(9)}',
+        subtitle: r.number,
         backLabel: 'Retour au suivi',
         onBack: () => requestBack(context, Routes.myRequests),
       ),

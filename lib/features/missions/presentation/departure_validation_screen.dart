@@ -141,7 +141,7 @@ class _ValidationState extends ConsumerState<_Validation> {
       offlineBanner: true,
       header: JourneyHeader(
         title: 'Validation du départ',
-        subtitle: '${m.number} · ${stepLabel(6)}',
+        subtitle: m.number,
         backLabel: 'Retour à la préparation',
         onBack: () => journeyBack(context),
       ),

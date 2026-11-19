@@ -123,7 +123,7 @@ class _ClosureState extends ConsumerState<_Closure> {
       offlineBanner: true,
       header: JourneyHeader(
         title: 'Clôture de la demande',
-        subtitle: '${m.number} · ${stepLabel(10)}',
+        subtitle: m.number,
         backLabel: 'Retour au contrôle de fin',
         onBack: () => _done ? _home() : journeyBack(context),
       ),

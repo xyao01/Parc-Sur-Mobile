@@ -80,7 +80,7 @@ class _PreparationState extends ConsumerState<_Preparation> {
       offlineBanner: true,
       header: JourneyHeader(
         title: 'Préparation du départ',
-        subtitle: '${m.vehicle.label} · ${stepLabel(5)}',
+        subtitle: m.vehicle.label,
         onBack: () => journeyBack(context),
         bottomPadding: 16,
       ),

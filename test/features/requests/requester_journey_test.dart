@@ -90,7 +90,7 @@ void main() {
       await tapText(tester, 'Nouvelle demande de véhicule');
 
       expect(find.byType(RequestFormScreen), findsOneWidget);
-      expect(find.text('Véhicule de mission · Étape 2 sur 10'), findsOneWidget);
+      expect(find.text('Véhicule de mission'), findsOneWidget);
       await tapText(tester, 'Vérifier ma demande');
       expect(find.text('Indiquez l’objet de la mission.'), findsOneWidget);
       expect(find.text('Indiquez la destination, ex. Bouaké.'), findsOneWidget);
@@ -111,7 +111,7 @@ void main() {
       await tapText(tester, 'Vérifier ma demande');
 
       expect(find.byType(RequestSummaryScreen), findsOneWidget);
-      expect(find.text("Vérifiez avant d'envoyer · Étape 3 sur 10"), findsOneWidget);
+      expect(find.text("Vérifiez avant d'envoyer"), findsOneWidget);
       expect(find.text('Jeu. 5 nov. · 07:00'), findsOneWidget);
       expect(find.text('Sam. 7 nov. · 18:00'), findsOneWidget);
       expect(find.text('Demandé'), findsOneWidget);
@@ -130,6 +130,7 @@ void main() {
         containsPair('commentaire', 'Matériel de contrôle (2 caisses).'),
       ));
       expect(find.byType(RequestSentScreen), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing);
       expect(find.text('Votre demande est envoyée'), findsOneWidget);
       expect(find.textContaining('D-0150', findRichText: true), findsWidgets);
       expect(find.text('Examen par le gestionnaire'), findsOneWidget);
@@ -258,7 +259,7 @@ void main() {
       await tapText(tester, 'Daloa');
 
       expect(find.byType(RequestEndScreen), findsOneWidget);
-      expect(find.text('D-0118 · Étape 9 sur 10'), findsOneWidget);
+      expect(find.text('D-0118'), findsOneWidget);
       expect(find.text('Mission terminée'), findsOneWidget);
       expect(find.text('Cochez la confirmation pour continuer'), findsOneWidget);
       await tapText(tester, "Je confirme que la mission s'est déroulée comme prévu.");

@@ -25,7 +25,6 @@ class NewRequestNoticeScreen extends StatelessWidget {
         return JourneyScaffold(
           header: JourneyHeader(
             title: 'Notification',
-            subtitle: stepLabel(2),
             backLabel: "Retour à l'accueil",
             onBack: () => journeyBack(context),
           ),

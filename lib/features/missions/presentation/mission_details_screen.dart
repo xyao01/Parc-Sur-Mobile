@@ -24,7 +24,7 @@ class MissionDetailsScreen extends StatelessWidget {
         return JourneyScaffold(
           header: JourneyHeader(
             title: 'Détails de la mission',
-            subtitle: '${m.number} · ${stepLabel(3)}',
+            subtitle: m.number,
             onBack: () => journeyBack(context),
           ),
           body: Column(

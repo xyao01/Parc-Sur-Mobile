@@ -15,8 +15,6 @@ import '../domain/mission_flow_config.dart';
 
 /// Pieces shared by the driver journey screens Mob-C01…C10 (values from the prototype).
 
-String stepLabel(int step) => 'Étape $step sur ${MissionFlowConfig.totalSteps}';
-
 /// Blue header with back button, title and subtitle (C02…C10).
 class JourneyHeader extends StatelessWidget {
   const JourneyHeader({

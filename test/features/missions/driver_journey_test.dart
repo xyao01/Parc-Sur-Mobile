@@ -107,7 +107,7 @@ void main() {
 
       expect(find.byType(NewRequestNoticeScreen), findsOneWidget);
       expect(find.text('Notification'), findsOneWidget);
-      expect(find.text('Étape 2 sur 10'), findsOneWidget);
+      expect(find.textContaining('Étape'), findsNothing, reason: 'no journey step in the headers (19/11/2026)');
       expect(find.text('Nouvelle demande de mission'), findsOneWidget);
       expect(find.text("Reçue aujourd'hui à 08:12 · à traiter"), findsOneWidget);
       expect(find.text('Toyota Prado · 3302 EA 01'), findsOneWidget);
@@ -117,7 +117,7 @@ void main() {
 
       await tapText(tester, 'Voir les détails de la mission');
       expect(find.byType(MissionDetailsScreen), findsOneWidget);
-      expect(find.text('D-0142 · Étape 3 sur 10'), findsOneWidget);
+      expect(find.text('D-0142'), findsOneWidget);
       expect(find.text('En attente de votre réponse'), findsOneWidget);
       expect(find.text('Inspection de dépôts pétroliers'), findsOneWidget);
       expect(find.text('3 jours'), findsOneWidget);
@@ -135,7 +135,7 @@ void main() {
       await tapText(tester, 'Accepter');
 
       expect(find.byType(RequestResponseScreen), findsOneWidget);
-      expect(find.text('D-0142 · Étape 4 sur 10'), findsOneWidget);
+      expect(find.text('D-0142'), findsOneWidget);
       expect(find.text('Mission acceptée'), findsOneWidget);
       expect(gateway.responses.single, containsPair('accept', true));
 
@@ -177,7 +177,7 @@ void main() {
       await tapText(tester, 'Commencer le contrôle de départ');
 
       expect(find.byType(DeparturePreparationScreen), findsOneWidget);
-      expect(find.text('Land Cruiser · 1150 FB 01 · Étape 5 sur 10'), findsOneWidget);
+      expect(find.text('Land Cruiser · 1150 FB 01'), findsOneWidget);
       expect(find.text('Cohérent avec le dernier relevé (84 112 km)'), findsOneWidget);
       expect(find.text('Vérification du véhicule'), findsOneWidget);
       expect(find.text('Cric, triangle, trousse de secours'), findsOneWidget);
@@ -190,7 +190,7 @@ void main() {
       await tapText(tester, 'Continuer vers la validation');
 
       expect(find.byType(DepartureValidationScreen), findsOneWidget);
-      expect(find.text('D-0139 · Étape 6 sur 10'), findsOneWidget);
+      expect(find.text('D-0139'), findsOneWidget);
       expect(find.text('84 230 km'), findsOneWidget);
       expect(find.text('3/4'), findsOneWidget);
       expect(find.text('1 anomalie : Propreté et équipements'), findsOneWidget);
@@ -256,7 +256,7 @@ void main() {
       await pumpApp(tester, location: '/missions/m-142/en-cours', now: duringMission, missions: gateway);
 
       expect(find.text('Mission en cours'), findsOneWidget);
-      expect(find.text('D-0142 · Étape 7 sur 10'), findsOneWidget);
+      expect(find.text('D-0142'), findsOneWidget);
       expect(find.text('Bouaké'), findsWidgets);
       expect(find.text('Heure de départ'), findsOneWidget);
       expect(find.text('07:02'), findsOneWidget);
@@ -284,7 +284,7 @@ void main() {
       await tapText(tester, 'Je suis arrivé à destination');
 
       expect(find.byType(ArrivalScreen), findsOneWidget);
-      expect(find.text('D-0142 · Étape 8 sur 10'), findsOneWidget);
+      expect(find.text('D-0142'), findsOneWidget);
       expect(find.text('Vous êtes arrivé à'), findsOneWidget);
       expect(find.text('09:16'), findsOneWidget);
       expect(find.text('Enregistrée automatiquement, modifiable si besoin. Départ à 07:02.'), findsOneWidget);
@@ -296,7 +296,7 @@ void main() {
       await tapText(tester, "Enregistrer l'arrivée");
 
       expect(find.byType(EndCheckScreen), findsOneWidget);
-      expect(find.text('Toyota Prado · 3302 EA 01 · Étape 9 sur 10'), findsOneWidget);
+      expect(find.text('Toyota Prado · 3302 EA 01'), findsOneWidget);
       await tapText(tester, '1/4');
       await tapText(tester, 'Signaler un dommage');
       await tapText(tester, 'Avant');
@@ -304,7 +304,7 @@ void main() {
       await tapText(tester, 'Continuer vers la clôture');
 
       expect(find.byType(ClosureScreen), findsOneWidget);
-      expect(find.text('D-0142 · Étape 10 sur 10'), findsOneWidget);
+      expect(find.text('D-0142'), findsOneWidget);
       expect(find.text('Terminée'), findsOneWidget);
       expect(find.text('61 480 → 61 836 km'), findsOneWidget);
       expect(find.text('Mar. 3 nov. · 09:16'), findsOneWidget);

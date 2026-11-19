@@ -92,7 +92,7 @@ class _ArrivalState extends ConsumerState<_Arrival> {
       offlineBanner: true,
       header: JourneyHeader(
         title: 'Arrivée à destination',
-        subtitle: '${m.number} · ${stepLabel(8)}',
+        subtitle: m.number,
         backLabel: 'Retour à la mission en cours',
         onBack: () => journeyBack(context),
       ),

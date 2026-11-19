@@ -29,7 +29,6 @@ class RequestSentScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(stepLabel(4), style: parcText(12, weight: 600, color: ParcColors.onPrimaryMuted)),
                 Semantics(header: true, child: Text('Demande envoyée', style: parcText(18, weight: 800, color: ParcColors.surface))),
               ],
             ),

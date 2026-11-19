@@ -85,7 +85,7 @@ class _RatingState extends ConsumerState<_Rating> {
     return JourneyScaffold(
       header: JourneyHeader(
         title: 'Évaluation et clôture',
-        subtitle: '${r.number} · ${stepLabel(10)}',
+        subtitle: r.number,
         onBack: () => requestBack(context, Routes.myRequests),
       ),
       bodyPadding: EdgeInsets.fromLTRB(20, _done ? 40 : 20, 20, 20),

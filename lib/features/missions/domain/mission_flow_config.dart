@@ -10,9 +10,6 @@ class CheckPoint {
 
 /// Configurable parameters of the driver journey Mob-C01…C10 (see README, « Points ouverts »).
 abstract final class MissionFlowConfig {
-  /// Steps of the journey shown in the headers (« Étape 5 sur 10 »).
-  static const totalSteps = 10;
-
   /// The departure check (C05) opens this many days before the departure day, from midnight.
   /// 0 = on the departure day only (decision of 13/11/2026).
   static const departureCheckOpensDaysBefore = 0;

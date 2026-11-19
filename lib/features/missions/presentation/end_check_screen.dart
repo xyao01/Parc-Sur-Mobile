@@ -50,7 +50,7 @@ class _EndCheckState extends ConsumerState<_EndCheck> {
       offlineBanner: true,
       header: JourneyHeader(
         title: 'Contrôle de fin de mission',
-        subtitle: '${m.vehicle.label} · ${stepLabel(9)}',
+        subtitle: m.vehicle.label,
         backLabel: "Retour à l'arrivée",
         onBack: () => journeyBack(context),
       ),

@@ -175,7 +175,7 @@ class _Header extends StatelessWidget {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  '${m.number} · ${stepLabel(7)}',
+                  m.number,
                   textAlign: TextAlign.right,
                   style: parcText(12, weight: 600, color: ParcColors.onDarkMuted),
                 ),

@@ -17,6 +17,7 @@ import '../data/fuel_submitter.dart';
 import '../data/missions_gateway.dart';
 import '../data/ticket_camera.dart';
 import '../domain/mission.dart';
+import '../domain/odometer_check.dart';
 import 'journey_widgets.dart';
 import 'mission_loader.dart';
 
@@ -221,13 +222,22 @@ class _FuelEntryState extends ConsumerState<_FuelEntry> {
     final km = parseKm(_odometer.text);
     Widget? hint;
     if (departure != null && km != null) {
-      final low = km < departure;
-      hint = KmHint(
-        low
-            ? 'Inférieur au départ de la mission (${FrenchDates.km(departure)} km)'
-            : 'Cohérent avec le départ de la mission (${FrenchDates.km(departure)} km)',
-        ok: !low,
+      final departureKm = FrenchDates.km(departure);
+      final verdict = checkOdometer(
+        km: km,
+        reference: departure,
+        since: widget.mission.departureCheck?.at,
+        now: ref.watch(clockProvider)(),
       );
+      hint = switch (verdict) {
+        OdometerVerdict.low => KmHint('Inférieur au départ de la mission ($departureKm km)', ok: false),
+        OdometerVerdict.ok => KmHint('Cohérent avec le départ de la mission ($departureKm km)', ok: true),
+        OdometerVerdict.unusual => KmHint(
+            'Écart inhabituel : ${FrenchDates.km(km - departure)} km depuis le départ de la mission ($departureKm km). '
+            'Vérifiez le compteur.',
+            ok: false,
+          ),
+      };
     }
 
     return JourneyScaffold(

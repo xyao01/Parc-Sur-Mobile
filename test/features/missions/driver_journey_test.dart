@@ -178,12 +178,13 @@ void main() {
 
       expect(find.byType(DeparturePreparationScreen), findsOneWidget);
       expect(find.text('Land Cruiser · 1150 FB 01'), findsOneWidget);
-      expect(find.text('Cohérent avec le dernier relevé (84 112 km)'), findsOneWidget);
+      expect(find.textContaining('Cohérent'), findsNothing, reason: 'empty field: nothing to judge yet (bug 19/11/2026)');
       expect(find.text('Vérification du véhicule'), findsOneWidget);
       expect(find.text('Cric, triangle, trousse de secours'), findsOneWidget);
       expect(find.text('Photos du véhicule'), findsOneWidget);
 
       await enterKm(tester, const Key('preparation.odometer'), '84 230');
+      expect(find.text('Cohérent avec le dernier relevé (84 112 km)'), findsOneWidget);
       for (final label in ['Pneus et roue de secours', 'Feux et clignotants', 'Documents à bord', 'Carrosserie sans nouveau dommage']) {
         await tapText(tester, label);
       }
@@ -225,6 +226,13 @@ void main() {
       await tapText(tester, 'Continuer vers la validation');
       expect(find.text('Le kilométrage ne peut pas être inférieur au dernier relevé (84 112 km).'), findsOneWidget);
       expect(find.byType(DepartureValidationScreen), findsNothing);
+    });
+
+    testWidgets('warns on a jump beyond 1 500 km a day since the last reading (bug 19/11/2026)', (tester) async {
+      await pumpApp(tester, location: '/missions/m-139/preparation', missions: journeyGateway());
+      await enterKm(tester, const Key('preparation.odometer'), '85 613');
+      expect(find.text('Écart inhabituel : 1 501 km depuis le dernier relevé (84 112 km). Vérifiez le compteur.'), findsOneWidget);
+      expect(find.textContaining('Cohérent'), findsNothing);
     });
 
     testWidgets('asks for the odometer before continuing', (tester) async {
@@ -335,6 +343,13 @@ void main() {
       await tapText(tester, "Enregistrer l'arrivée");
       expect(find.text('Le kilométrage final ne peut pas être inférieur à celui du départ.'), findsOneWidget);
       expect(find.byType(EndCheckScreen), findsNothing);
+    });
+
+    testWidgets('warns on a distance beyond 1 500 km a day since the departure (bug 19/11/2026)', (tester) async {
+      await pumpApp(tester, location: '/missions/m-142/arrivee', now: duringMission, missions: FakeMissionsGateway(rows: inProgressRows(duringMission)));
+      await enterKm(tester, const Key('arrival.odometer'), '63000');
+      expect(find.text('Écart inhabituel : 1 520 km depuis le départ (61 480 km). Vérifiez le compteur.'), findsOneWidget);
+      expect(find.textContaining('Cohérent'), findsNothing);
     });
   });
 }

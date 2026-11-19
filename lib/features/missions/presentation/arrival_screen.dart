@@ -13,6 +13,7 @@ import '../../../core/widgets/parc_icon.dart';
 import '../data/missions_providers.dart';
 import '../domain/mission.dart';
 import '../domain/mission_drafts.dart';
+import '../domain/odometer_check.dart';
 import 'journey_widgets.dart';
 import 'mission_loader.dart';
 
@@ -84,9 +85,15 @@ class _ArrivalState extends ConsumerState<_Arrival> {
     final distance = km != null && leftKm != null && km >= leftKm ? km - leftKm : null;
     Widget? hint;
     if (km != null && leftKm != null) {
-      hint = km >= leftKm
-          ? KmHint('Cohérent : ${FrenchDates.km(km - leftKm)} km parcourus depuis le départ (${FrenchDates.km(leftKm)} km)', ok: true)
-          : KmHint('Inférieur au kilométrage de départ (${FrenchDates.km(leftKm)} km)', ok: false);
+      final left = FrenchDates.km(leftKm);
+      hint = switch (checkOdometer(km: km, reference: leftKm, since: m.departureCheck?.at, now: arrivedAt)) {
+        OdometerVerdict.low => KmHint('Inférieur au kilométrage de départ ($left km)', ok: false),
+        OdometerVerdict.ok => KmHint('Cohérent : ${FrenchDates.km(km - leftKm)} km parcourus depuis le départ ($left km)', ok: true),
+        OdometerVerdict.unusual => KmHint(
+            'Écart inhabituel : ${FrenchDates.km(km - leftKm)} km depuis le départ ($left km). Vérifiez le compteur.',
+            ok: false,
+          ),
+      };
     }
     return JourneyScaffold(
       offlineBanner: true,

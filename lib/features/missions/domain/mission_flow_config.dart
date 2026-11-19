@@ -14,6 +14,10 @@ abstract final class MissionFlowConfig {
   /// 0 = on the departure day only (decision of 13/11/2026).
   static const departureCheckOpensDaysBefore = 0;
 
+  /// Odometer jump beyond which a reading is « Écart inhabituel » (per started day). Same value as the database
+  /// `seuil_km_par_jour()` (20261106110000_kilometrage_controle), still to be confirmed by the business.
+  static const maxKmPerDay = 1500;
+
   /// Fuel gauge choices (label shown → value stored by `enregistrer_controle`).
   /// The database also accepts `vide`, not offered by the prototype.
   static const fuelLevels = {'1/4': 'quart', '1/2': 'moitie', '3/4': 'trois_quarts', 'Plein': 'plein'};

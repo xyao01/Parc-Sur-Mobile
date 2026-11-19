@@ -162,6 +162,42 @@ void main() {
     });
   });
 
+  group('D05 · actualisation (bug 19/11/2026: decision made on the web not shown)', () {
+    FakeRequestsGateway pendingOnly() =>
+        FakeRequestsGateway(rows: [prototypeRequestRows(prototypeNow).first]);
+
+    void decide(FakeRequestsGateway g) => g.rows = [
+          {...g.rows!.first, 'statut': 'validee', 'vehicule': 'Toyota Corolla · AB-1234-CI', 'chauffeur': 'Yao Kouadio'},
+        ];
+
+    testWidgets('pulling the short list down shows the decision', (tester) async {
+      final g = await pumpRequester(tester, '/mes-demandes', requests: pendingOnly());
+      expect(find.text('En attente'), findsWidgets);
+      decide(g);
+
+      await tester.fling(find.text('Bouaké'), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Validée'), findsOneWidget);
+    });
+
+    testWidgets('coming back to the app reloads the requests', (tester) async {
+      final g = await pumpRequester(tester, '/mes-demandes', requests: pendingOnly());
+      decide(g);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Validée'), findsOneWidget);
+    });
+  });
+
   group('D06 · détail, annulation, modification', () {
     testWidgets('cancels a pending request after confirmation', (tester) async {
       final g = await pumpRequester(tester, '/demandes/m-142');

@@ -81,6 +81,16 @@ void main() {
       expect(find.text('1 à 2 photos. Le ticket est obligatoire.'), findsOneWidget);
     });
 
+    testWidgets('warns on an odometer beyond 1 500 km a day since the departure (bug 19/11/2026)', (tester) async {
+      await openFuelEntry(tester, gateway());
+      await fill(tester, km: '452753026850');
+      expect(
+        find.text('Écart inhabituel : 452 752 965 370 km depuis le départ de la mission (61 480 km). Vérifiez le compteur.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Cohérent'), findsNothing);
+    });
+
     testWidgets('uploads the ticket, then records the fill-up on the mission', (tester) async {
       final g = gateway();
       await openFuelEntry(tester, g);

@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/parcsur_theme.dart';
+import '../features/alerts/data/alerts_providers.dart';
 import '../features/auth/application/session.dart';
+import '../features/missions/data/missions_providers.dart';
+import '../features/requests/data/requests_providers.dart';
 import 'router.dart';
 import 'routes.dart';
 import 'sync.dart';
@@ -21,8 +24,27 @@ class ParcSurApp extends ConsumerStatefulWidget {
 class _ParcSurAppState extends ConsumerState<ParcSurApp> {
   late final GoRouter _router = buildRouter(ref, initialLocation: widget.initialLocation);
 
+  /// Back in the app (from another app or a locked phone): reload what the managers may have changed meanwhile
+  /// (decision on a request, new mission, alerts). Screens keep showing the previous data while it reloads.
+  late final AppLifecycleListener _lifecycle;
+
+  void _reloadSharedData() {
+    ref
+      ..invalidate(myRequestsProvider)
+      ..invalidate(missionsProvider)
+      ..invalidate(pendingRequestsProvider)
+      ..invalidate(alertsProvider);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _reloadSharedData);
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
     _router.dispose();
     super.dispose();
   }

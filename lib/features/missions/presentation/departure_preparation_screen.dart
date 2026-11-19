@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
+import '../../../core/clock.dart';
 import '../../../core/french_dates.dart';
 import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
@@ -10,6 +11,7 @@ import '../data/missions_providers.dart';
 import '../domain/mission.dart';
 import '../domain/mission_drafts.dart';
 import '../domain/mission_flow_config.dart';
+import '../domain/odometer_check.dart';
 import 'journey_widgets.dart';
 import 'mission_loader.dart';
 
@@ -68,13 +70,17 @@ class _PreparationState extends ConsumerState<_Preparation> {
     final last = m.vehicle.odometerKm;
     final km = parseKm(_odometer.text);
     Widget? hint;
-    if (last != null) {
-      // Date of the last reading is not returned by mes_missions_chauffeur (see README).
-      final low = km != null && km < last;
-      hint = KmHint(
-        low ? 'Inférieur au dernier relevé (${FrenchDates.km(last)} km)' : 'Cohérent avec le dernier relevé (${FrenchDates.km(last)} km)',
-        ok: !low,
-      );
+    if (last != null && km != null) {
+      // Date of the last reading is not returned by mes_missions_chauffeur (see README): one day assumed.
+      final lastKm = FrenchDates.km(last);
+      hint = switch (checkOdometer(km: km, reference: last, now: ref.watch(clockProvider)())) {
+        OdometerVerdict.low => KmHint('Inférieur au dernier relevé ($lastKm km)', ok: false),
+        OdometerVerdict.ok => KmHint('Cohérent avec le dernier relevé ($lastKm km)', ok: true),
+        OdometerVerdict.unusual => KmHint(
+            'Écart inhabituel : ${FrenchDates.km(km - last)} km depuis le dernier relevé ($lastKm km). Vérifiez le compteur.',
+            ok: false,
+          ),
+      };
     }
     return JourneyScaffold(
       offlineBanner: true,

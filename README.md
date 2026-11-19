@@ -104,6 +104,8 @@ Le lien doit être ouvert sur le téléphone qui a fait la demande (flux PKCE : 
 | Liste de départ (C05) | 5 lignes → `pneus`, `eclairage`, `documents`, `carrosserie`, et « Propreté et équipements » → `proprete` + `equipements` (la base n'a pas `freins` ni `niveaux` dans la maquette) | `mission_flow_config.dart` |
 | Liste de retour (C09) | 4 lignes → `pneus`, `eclairage`, `carrosserie`, « Documents et clés restitués » → `documents` | `mission_flow_config.dart` |
 | Dommage signalé (C09) | envoyé dans `p_observations` (« Dommage constaté · zone · description »), avant les observations de C10 | `mission_drafts.dart` |
+| Plafond de kilométrage (C05, C08, C13) | 1 500 km par jour entamé (au moins 1 jour, depuis le contrôle de départ ; 1 jour depuis le dernier relevé, dont la date n'est pas renvoyée), comme `seuil_km_par_jour()` en base. Au-delà : « Écart inhabituel … Vérifiez le compteur. » en rouge, sans bloquer l'envoi (la base enregistre et marque le relevé « à vérifier ») | `mission_flow_config.dart` (`maxKmPerDay`) |
+| Rechargement au retour dans l'application | demandes, missions, demandes à répondre et alertes rechargées dès que l'application revient au premier plan | `lib/app/app.dart` (`_reloadSharedData`) |
 | Motifs de refus, natures de problème, types d'incident, zones de dommage | listes de la maquette | `mission_flow_config.dart` |
 | Message des actions sans backend | « Cette action n'est pas encore disponible sur le serveur. Prévenez votre gestionnaire de parc. » (hors maquette) | `mission_flow_config.dart` (`unavailableMessage`) |
 | Nombre minimal / maximal de passagers | 1 / 50 (comme la base et le web) | `lib/features/requests/domain/request_config.dart` |

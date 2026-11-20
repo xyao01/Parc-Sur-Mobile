@@ -97,8 +97,12 @@ class FakeMissionsGateway implements MissionsGateway {
   final responses = <Map<String, dynamic>>[];
   final incidents = <Map<String, dynamic>>[];
 
+  /// Number of `mes_missions_chauffeur` calls (reloads).
+  int fetches = 0;
+
   @override
   Future<List<Map<String, dynamic>>> myMissions() async {
+    fetches++;
     if (fetchError != null) throw fetchError!;
     return rows ?? const [];
   }

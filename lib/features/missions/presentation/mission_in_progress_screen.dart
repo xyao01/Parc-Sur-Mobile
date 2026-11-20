@@ -470,8 +470,8 @@ class _IncidentSheetState extends ConsumerState<_IncidentSheet> {
             photos: List.of(_photos),
             enteredAt: ref.read(clockProvider)(),
           ));
-      // Sent: the mission list now carries the serious incident (queued: applied from the outbox).
-      if (result == SubmitResult.sent && _serious) ref.invalidate(missionsProvider);
+      // Sent: the mission list now carries the incident, serious or not (closure recap); queued: applied from the outbox.
+      if (result == SubmitResult.sent) ref.invalidate(missionsProvider);
       if (mounted) {
         setState(() {
           _sent = true;

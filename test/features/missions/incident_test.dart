@@ -49,7 +49,9 @@ void main() {
       await tester.enterText(find.byType(EditableText), 'Pneu avant droit');
       await takePhoto(tester);
       expect(find.text('Photo 1'), findsOneWidget);
+      final fetches = g.fetches;
       await tapText(tester, "Envoyer l'incident");
+      expect(g.fetches, greaterThan(fetches), reason: 'mission reloaded: the closure recap lists the incident');
 
       final incident = g.missionIncidents.single;
       final id = incident['id'] as String;

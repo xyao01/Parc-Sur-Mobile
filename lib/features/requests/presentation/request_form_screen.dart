@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +50,7 @@ class _FormState extends ConsumerState<_Form> {
   late final TextEditingController _destination;
   late final TextEditingController _notes;
   Map<String, String> _errors = const {};
+  bool _checked = false;
 
   /// Fields in display order, to focus the first one in error (tr-04).
   static const _order = ['purpose', 'destination', 'departure', 'return', 'passengers'];
@@ -59,9 +61,16 @@ class _FormState extends ConsumerState<_Form> {
   void initState() {
     super.initState();
     widget.fill?.call(_draft);
-    _purpose = TextEditingController(text: _draft.purpose)..addListener(() => _draft.purpose = _purpose.text);
+    _purpose = TextEditingController(text: _draft.purpose)
+      ..addListener(() {
+        _draft.purpose = _purpose.text;
+        _recheck();
+      });
     _destination = TextEditingController(text: _draft.destination)
-      ..addListener(() => _draft.destination = _destination.text);
+      ..addListener(() {
+        _draft.destination = _destination.text;
+        _recheck();
+      });
     _notes = TextEditingController(text: _draft.notes)..addListener(() => _draft.notes = _notes.text);
   }
 
@@ -90,9 +99,20 @@ class _FormState extends ConsumerState<_Form> {
     if (time == null) return;
     final value = DateTime(date.year, date.month, date.day, time.hour, time.minute);
     setState(() => departure ? _draft.departure = value : _draft.plannedReturn = value);
+    _recheck();
+  }
+
+  /// After a first check, messages follow the entries: a corrected field loses its message,
+  /// a field emptied again gets it back.
+  void _recheck() {
+    if (!_checked) return;
+    final errors = _draft.validate(ref.read(clockProvider)());
+    if (mapEquals(errors, _errors)) return;
+    setState(() => _errors = errors);
   }
 
   void _check() {
+    _checked = true;
     final errors = _draft.validate(ref.read(clockProvider)());
     setState(() => _errors = errors);
     if (errors.isNotEmpty) {
@@ -109,6 +129,7 @@ class _FormState extends ConsumerState<_Form> {
     final n = _draft.passengers + delta;
     if (n < RequestConfig.minPassengers || n > RequestConfig.maxPassengers) return;
     setState(() => _draft.passengers = n);
+    _recheck();
   }
 
   Widget _error(String field) =>

@@ -15,6 +15,7 @@ import '../../../core/widgets/parc_text_field.dart';
 import '../data/control_submitter.dart';
 import '../data/fuel_submitter.dart';
 import '../data/missions_gateway.dart';
+import '../data/missions_providers.dart';
 import '../data/ticket_camera.dart';
 import '../domain/mission.dart';
 import '../domain/odometer_check.dart';
@@ -135,6 +136,8 @@ class _FuelEntryState extends ConsumerState<_FuelEntry> {
     setState(() => _busy = true);
     try {
       final result = await ref.read(fuelSubmitterProvider).submit(entry);
+      // Sent: the mission list now carries the fill-up (closure recap).
+      if (result == SubmitResult.sent) ref.invalidate(missionsProvider);
       if (mounted) {
         setState(() {
           _done = result;

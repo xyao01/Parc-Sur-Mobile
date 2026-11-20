@@ -17,6 +17,8 @@ class Mission {
     this.returnCheck,
     this.receivedAt,
     this.seriousIncident,
+    this.fuelEntries,
+    this.incidents,
   });
 
   factory Mission.fromJson(Map<String, dynamic> json) {
@@ -47,6 +49,12 @@ class Mission {
       returnCheck: ControlSummary.fromJson(json['controleRetour']),
       receivedAt: json['recueLe'] is String ? DateTime.parse(json['recueLe'] as String).toLocal() : null,
       seriousIncident: IncidentSummary.fromJson(json['incidentGrave']),
+      fuelEntries: json['pleins'] is List
+          ? [for (final p in json['pleins'] as List) if (p is Map) FuelSummary.fromJson(p)]
+          : null,
+      incidents: json['incidents'] is List
+          ? [for (final s in json['incidents'] as List) ?IncidentSummary.fromJson(s)]
+          : null,
     );
   }
 
@@ -75,6 +83,11 @@ class Mission {
 
   /// First serious incident reported by the driver (`incidentGrave`): vehicle immobilised, mission interrupted.
   final IncidentSummary? seriousIncident;
+
+  /// Fill-ups and incidents recorded on the mission (`pleins`, `incidents`, migration 20261120110000).
+  /// Null when the server does not return them yet.
+  final List<FuelSummary>? fuelEntries;
+  final List<IncidentSummary>? incidents;
 
   /// Interrupted by a serious incident: only the return check is left.
   bool get interrupted => seriousIncident != null;
@@ -125,6 +138,19 @@ class IncidentSummary {
 
   final String kind;
   final DateTime? at;
+}
+
+/// A fill-up recorded on the mission (`pleins`: `litres`, `montant` in FCFA).
+class FuelSummary {
+  const FuelSummary({required this.litres, required this.amount});
+
+  factory FuelSummary.fromJson(Map<dynamic, dynamic> json) => FuelSummary(
+        litres: (json['litres'] as num?)?.toDouble() ?? 0,
+        amount: (json['montant'] as num?)?.round() ?? 0,
+      );
+
+  final double litres;
+  final int amount;
 }
 
 class Vehicle {

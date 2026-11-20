@@ -20,6 +20,7 @@ import '../data/missions_providers.dart';
 import '../domain/mission.dart';
 import '../domain/mission_drafts.dart';
 import '../domain/mission_flow_config.dart';
+import 'fuel_entry_screen.dart' show formatLitres;
 import 'journey_widgets.dart';
 import 'mission_loader.dart';
 
@@ -101,6 +102,15 @@ class _ClosureState extends ConsumerState<_Closure> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// `2 · 48,5 L · 42 850 FCFA` (count and totals), `Aucun`, or `—` when the server does not tell.
+  static String _fuelRecap(List<FuelSummary>? entries) {
+    if (entries == null) return '—';
+    if (entries.isEmpty) return 'Aucun';
+    final litres = entries.fold<double>(0, (s, e) => s + e.litres);
+    final amount = entries.fold<int>(0, (s, e) => s + e.amount);
+    return '${entries.length} · ${formatLitres(litres)} L · ${FrenchDates.km(amount)} FCFA';
   }
 
   void _home() {
@@ -200,6 +210,20 @@ class _ClosureState extends ConsumerState<_Closure> {
                         ),
                         ('Véhicule', m.vehicle.label, color: null),
                         ('Photos', 'Aucune', color: null),
+                        ('Pleins', _fuelRecap(m.fuelEntries), color: null),
+                        (
+                          'Incidents',
+                          switch (m.incidents) {
+                            null => '—',
+                            [] => 'Aucun',
+                            final list => list.map((i) => i.kind).join(', '),
+                          },
+                          color: switch (m.incidents) {
+                            null => null,
+                            [] => ParcColors.success,
+                            _ => ParcColors.danger,
+                          },
+                        ),
                       ]),
                     ],
                   ),

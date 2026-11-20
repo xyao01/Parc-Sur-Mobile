@@ -100,7 +100,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('fuel.station')), 'Total Yamoussoukro');
       await takeTicket(tester);
       expect(find.text('Ticket 1'), findsOneWidget);
+      final fetches = g.fetches;
       await tapText(tester, 'Enregistrer le plein');
+      expect(g.fetches, greaterThan(fetches), reason: 'mission reloaded: the closure recap counts the fill-up');
 
       final fuel = g.fuels.single;
       final id = fuel['id'] as String;

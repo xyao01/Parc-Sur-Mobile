@@ -103,6 +103,15 @@ void main() {
 
       await tester.enterText(find.byKey(const Key('request.purpose')), 'Inspection de dépôts pétroliers');
       await tester.enterText(find.byKey(const Key('request.destination')), 'Bouaké');
+      await tester.pump();
+      // A corrected field loses its message at once; the others keep theirs until fixed.
+      expect(find.text('Indiquez l’objet de la mission.'), findsNothing);
+      expect(find.text('Indiquez la destination, ex. Bouaké.'), findsNothing);
+      expect(find.text('Indiquez la date et l’heure de départ.'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('request.purpose')), ' ');
+      await tester.pump();
+      expect(find.text('Indiquez l’objet de la mission.'), findsOneWidget, reason: 'emptied again after a check');
+      await tester.enterText(find.byKey(const Key('request.purpose')), 'Inspection de dépôts pétroliers');
       await tester.enterText(find.byKey(const Key('request.notes')), 'Matériel de contrôle (2 caisses).');
       await setDates(tester, newRequestDraftKey, DateTime(2026, 11, 5, 7), DateTime(2026, 11, 7, 18));
       await tester.tap(find.bySemanticsLabel('Ajouter un passager'));

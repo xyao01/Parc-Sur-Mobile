@@ -336,6 +336,37 @@ void main() {
       expect(find.byType(DriverHomeScreen), findsOneWidget);
     });
 
+    testWidgets('the recap lists the fill-ups and incidents of the mission (remarque 19/11/2026)', (tester) async {
+      final rows = inProgressRows(duringMission);
+      rows.single
+        ..['pleins'] = [
+          {'id': 'p-1', 'kilometrage': 61600, 'litres': 30, 'montant': 26850, 'complet': true},
+          {'id': 'p-2', 'kilometrage': 61700, 'litres': 18.5, 'montant': 16000, 'complet': false},
+        ]
+        ..['incidents'] = [
+          {'id': 's-1', 'nature': 'Retard', 'grave': false, 'signaleLe': duringMission.toUtc().toIso8601String()},
+          {'id': 's-2', 'nature': 'Crevaison', 'grave': false, 'signaleLe': duringMission.toUtc().toIso8601String()},
+        ];
+      await pumpApp(tester, location: '/missions/m-142/cloture', now: duringMission, missions: FakeMissionsGateway(rows: rows));
+      expect(find.text('Pleins'), findsOneWidget);
+      expect(find.text('2 · 48,5 L · 42 850 FCFA'), findsOneWidget);
+      expect(find.text('Incidents'), findsOneWidget);
+      expect(find.text('Retard, Crevaison'), findsOneWidget);
+    });
+
+    testWidgets('the recap says « Aucun » without fill-up nor incident, « — » when the server does not tell', (tester) async {
+      final rows = inProgressRows(duringMission);
+      rows.single
+        ..['pleins'] = []
+        ..['incidents'] = [];
+      await pumpApp(tester, location: '/missions/m-142/cloture', now: duringMission, missions: FakeMissionsGateway(rows: rows));
+      expect(find.text('Aucun'), findsNWidgets(3), reason: 'dommages, pleins, incidents');
+
+      await pumpApp(tester, location: '/missions/m-142/cloture', now: duringMission, missions: FakeMissionsGateway(rows: inProgressRows(duringMission)));
+      expect(find.text('Aucun'), findsOneWidget, reason: 'dommages only');
+      expect(find.text('Pleins'), findsOneWidget);
+    });
+
     testWidgets('flags a final odometer below the departure reading', (tester) async {
       await pumpApp(tester, location: '/missions/m-142/arrivee', now: duringMission, missions: FakeMissionsGateway(rows: inProgressRows(duringMission)));
       await enterKm(tester, const Key('arrival.odometer'), '61000');

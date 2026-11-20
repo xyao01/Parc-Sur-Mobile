@@ -105,7 +105,7 @@ class DriverHomeScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.driver, required this.now, required this.pending, required this.unreadAlerts});
 
   final MobileProfile driver;
@@ -122,7 +122,7 @@ class _Header extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final top = MediaQuery.paddingOf(context).top;
     final count = pending.length + unreadAlerts;
     return Container(
@@ -201,8 +201,10 @@ class _Header extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const _AvailabilityRow(),
+          if (ref.watch(featuresProvider).availabilityCard) ...[
+            const SizedBox(height: 16),
+            const _AvailabilityRow(),
+          ],
         ],
       ),
     );

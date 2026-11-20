@@ -6,6 +6,7 @@ class Features {
   const Features({
     this.driverRequestAnswer = false,
     this.driverAvailability = true,
+    this.availabilityCard = false,
     this.driverIncident = true,
     this.blockDeparture = false,
     this.photos = false,
@@ -21,6 +22,7 @@ class Features {
   const Features.all()
       : driverRequestAnswer = true,
         driverAvailability = true,
+        availabilityCard = true,
         driverIncident = true,
         blockDeparture = true,
         photos = true,
@@ -36,6 +38,9 @@ class Features {
 
   /// Mob-C01 « Je suis disponible » (`ma_disponibilite`, `declarer_indisponible`, `declarer_disponible`, 20261116110000_disponibilite_chauffeur).
   final bool driverAvailability;
+
+  /// Mob-C01: the « Je suis disponible » row is shown on the driver home. Hidden (request of 20/11/2026).
+  final bool availabilityCard;
 
   /// Mob-C07 « Signaler un incident » (`signaler_incident_chauffeur`, 20261116130000_incident_chauffeur).
   final bool driverIncident;

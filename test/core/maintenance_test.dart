@@ -34,10 +34,11 @@ void main() {
     expectMaintenance('Réponse aux demandes');
   });
 
-  testWidgets('« Je suis disponible » (C01) is live in production', (tester) async {
+  testWidgets('« Je suis disponible » (C01) is hidden in production (demande du 20/11/2026)', (tester) async {
     await pumpApp(tester, location: '/missions', features: production);
-    await tapText(tester, 'Je suis disponible');
-    expect(find.byType(MaintenanceScreen), findsNothing);
+    expect(find.text('Bonjour, Yao'), findsOneWidget);
+    expect(find.text('Je suis disponible'), findsNothing);
+    expect(find.bySemanticsLabel('Disponibilité'), findsNothing);
   });
 
   testWidgets('« Un problème : bloquer le départ » (C06)', (tester) async {

@@ -12,8 +12,9 @@ abstract interface class RequestsGateway {
   /// `annuler_demande(id, motif)`.
   Future<void> cancel(String id, String reason);
 
-  /// Problem reported during the mission (Mob-D08). Not offered by the database yet.
-  Future<void> reportProblem({required String requestId, required String kind, String? description});
+  /// `signaler_probleme_mission(id, demande, nature, description)`: problem reported by the requester during the
+  /// mission (Mob-D08, migration 20261120120000_probleme_mission). Idempotent on [id].
+  Future<void> reportProblem({required String id, required String requestId, required String kind, String? description});
 
   /// Evaluation of the mission (Mob-D10). Not offered by the database yet.
   Future<void> rate({required String requestId, required int rating, required List<String> tags, String? comment});

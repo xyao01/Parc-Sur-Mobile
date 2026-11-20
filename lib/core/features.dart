@@ -11,7 +11,7 @@ class Features {
     this.blockDeparture = false,
     this.photos = false,
     this.phoneCalls = false,
-    this.requesterProblem = false,
+    this.requesterProblem = true,
     this.missionRating = false,
     this.driverRecordReport = false,
     this.missionExpenses = false,
@@ -54,7 +54,7 @@ class Features {
   /// Phone call buttons (requester, driver).
   final bool phoneCalls;
 
-  /// Mob-D08 « Signaler un problème ».
+  /// Mob-D08 « Signaler un problème » (`signaler_probleme_mission`, 20261120120000_probleme_mission).
   final bool requesterProblem;
 
   /// Mob-D10 evaluation.

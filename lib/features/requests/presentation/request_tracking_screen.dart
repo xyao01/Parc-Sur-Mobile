@@ -8,6 +8,7 @@ import '../../../core/french_dates.dart';
 import '../../../core/widgets/maintenance_screen.dart';
 import '../../../core/theme/parcsur_colors.dart';
 import '../../../core/theme/parcsur_text.dart';
+import '../../../core/uuid.dart';
 import '../../../core/widgets/parc_buttons.dart';
 import '../../../core/widgets/parc_error_alert.dart';
 import '../../../core/widgets/parc_icon.dart';
@@ -280,6 +281,8 @@ class _ReportSheet extends ConsumerStatefulWidget {
 }
 
 class _ReportSheetState extends ConsumerState<_ReportSheet> {
+  /// Id of this report: a retry after a network error is not recorded twice.
+  final String _id = uuidV4();
   int? _kind;
   bool _showError = false;
   bool _busy = false;
@@ -307,6 +310,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
     });
     try {
       await ref.read(requestsGatewayProvider).reportProblem(
+            id: _id,
             requestId: widget.request.id,
             kind: RequestConfig.problemKinds[kind],
             description: _description.text.trim().isEmpty ? null : _description.text.trim(),

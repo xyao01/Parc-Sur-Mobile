@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parc_sur_mobile/core/app_role.dart';
 import 'package:parc_sur_mobile/features/auth/domain/mobile_profile.dart';
-import 'package:parc_sur_mobile/features/missions/domain/mission_flow_config.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_gateway.dart';
 import 'package:parc_sur_mobile/features/requests/data/requests_providers.dart';
 import 'package:parc_sur_mobile/features/requests/domain/request_config.dart';
@@ -282,19 +281,32 @@ void main() {
       await tapText(tester, 'Envoyer au gestionnaire');
       expect(find.text('Choisissez le type de problème.'), findsOneWidget);
       await tapText(tester, 'Retard important');
+      await tester.enterText(find.byType(EditableText).last, '  Toujours pas arrivé  ');
       await tapText(tester, 'Envoyer au gestionnaire');
       expect(find.text('Signalement envoyé'), findsOneWidget);
-      expect(g.problems.single, containsPair('kind', 'Retard important'));
+      expect(find.text('Le gestionnaire du parc a été informé.'), findsOneWidget);
+      final sent = g.problems.single;
+      expect(sent, containsPair('requestId', 'm-139'));
+      expect(sent, containsPair('kind', 'Retard important'));
+      expect(sent, containsPair('description', 'Toujours pas arrivé'));
+      expect(sent['id'], matches(RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')));
     });
 
-    testWidgets('the report is refused while the server has no such step', (tester) async {
+    testWidgets('a refusal of the server is shown; the retry keeps the same report id', (tester) async {
       final g = gateway();
       await pumpRequester(tester, '/demandes/m-139/suivi', requests: g);
       await tapText(tester, 'Signaler un problème');
       await tapText(tester, 'Retard important');
-      g.error = const RequestsGatewayException(MissionFlowConfig.unavailableMessage);
+      g.error = const RequestsGatewayException('La mission D-0139 est clôturée : contactez directement le gestionnaire du parc.');
       await tapText(tester, 'Envoyer au gestionnaire');
-      expect(find.text(MissionFlowConfig.unavailableMessage), findsOneWidget);
+      expect(find.text('La mission D-0139 est clôturée : contactez directement le gestionnaire du parc.'), findsOneWidget);
+      expect(find.text('Signalement envoyé'), findsNothing);
+
+      g.error = null;
+      await tapText(tester, 'Envoyer au gestionnaire');
+      expect(find.text('Signalement envoyé'), findsOneWidget);
+      expect(g.problems, hasLength(1));
+      expect(g.problemAttempts.toSet(), hasLength(1), reason: 'same id on retry: not recorded twice on the server');
     });
   });
 

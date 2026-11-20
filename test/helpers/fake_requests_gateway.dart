@@ -50,6 +50,9 @@ class FakeRequestsGateway implements RequestsGateway {
   final updated = <String, Map<String, dynamic>>{};
   final cancelled = <(String, String)>[];
   final problems = <Map<String, dynamic>>[];
+
+  /// Report ids of every call, refused ones included.
+  final problemAttempts = <String>[];
   final ratings = <Map<String, dynamic>>[];
 
   @override
@@ -95,9 +98,10 @@ class FakeRequestsGateway implements RequestsGateway {
   }
 
   @override
-  Future<void> reportProblem({required String requestId, required String kind, String? description}) async {
+  Future<void> reportProblem({required String id, required String requestId, required String kind, String? description}) async {
+    problemAttempts.add(id);
     if (error != null) throw error!;
-    problems.add({'id': requestId, 'kind': kind, 'description': description});
+    problems.add({'id': id, 'requestId': requestId, 'kind': kind, 'description': description});
   }
 
   @override

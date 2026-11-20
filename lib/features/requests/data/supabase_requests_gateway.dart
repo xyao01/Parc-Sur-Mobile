@@ -56,8 +56,13 @@ class SupabaseRequestsGateway implements RequestsGateway {
       _guard(() => _client.rpc('annuler_demande', params: {'p_id': id, 'p_motif': reason}));
 
   @override
-  Future<void> reportProblem({required String requestId, required String kind, String? description}) =>
-      throw const RequestsGatewayException(MissionFlowConfig.unavailableMessage);
+  Future<void> reportProblem({required String id, required String requestId, required String kind, String? description}) =>
+      _guard(() => _client.rpc('signaler_probleme_mission', params: {
+            'p_id': id,
+            'p_demande': requestId,
+            'p_nature': kind,
+            'p_description': description,
+          }));
 
   @override
   Future<void> rate({required String requestId, required int rating, required List<String> tags, String? comment}) =>

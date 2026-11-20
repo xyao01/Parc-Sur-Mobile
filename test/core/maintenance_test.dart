@@ -92,10 +92,11 @@ void main() {
     expect(find.byType(MaintenanceScreen), findsNothing);
   });
 
-  testWidgets('« Signaler un problème » (D08)', (tester) async {
+  testWidgets('« Signaler un problème » (D08) is live in production', (tester) async {
     await pumpApp(tester, location: '/demandes/m-139/suivi', profile: requester, features: production);
     await tapText(tester, 'Signaler un problème');
-    expectMaintenance('Signaler un problème');
+    expect(find.byType(MaintenanceScreen), findsNothing);
+    expect(find.text('Envoyer au gestionnaire'), findsOneWidget);
   });
 
   testWidgets('evaluation (D10)', (tester) async {
